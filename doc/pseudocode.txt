@@ -1,0 +1,154 @@
+#
+# Pseudocode extracted from the grant proposal.
+#
+#
+#
+
+retrieve (indexSpacePosition)
+  result ← recursiveRetrieve (indexSpacePosition, fulcrum, .O.)
+end retrieve
+
+recursiveRetrieve (index, aCrum, cumulativeIndex)
+  if (index .==. cumulativelndex)
+    result ← data (aCrum)
+  else 
+    for each child of aCrum
+      if (disp(child) .<=. index) and (index .<. (disp(child) .+. wid(child)))
+        result ← recursiveRetrieve (index, child, cumulativeIndex .+. disp(chlld))
+      end if
+    end for
+  end if
+end recursiveRetrieve
+
+
+
+
+
+cut (cutSet)
+        recursiveCut (cutSet, fulcrum)
+end cut
+
+recursiveCut (cutSet, parentCrum)
+        dontDiveDeeperFlag ← TRUE
+        for each child of parentCrum
+                if (disp(child) .<. firstCut(cutSet)) and (lastCut(cutSet) .<=. (disp(child) .+. wid(child)))
+                        dontDiveDeeperFlag ← FALSE
+                        for each cut in cutSet
+                                cut ← cut .-. disp(child)
+                        end for
+                        recursiveCut (cutSet, child)
+                end if
+        end for
+        if (dontDiveDeeperFlag)
+                chopUp (cutSet, parentCrum)
+        end if
+end recursiveCut
+
+chopOp (cutSet, parentCrum)
+        for each cut in cutSet
+                for each child of parentCrum
+                        if (disp(child) .<. cut) and (cut .<=. (disp(child) .+. wid(child)))
+                                neWChildSet ← split(cut, child)
+                                disown(parentCrum, child)
+                                adopt (parentCrum, leftChild(newChildSet))
+                                adopt (parentCrum, rightChild(newChildSet))
+                                break out of inner loop
+                        end if
+                end for
+        end for
+end chopUp
+
+split (cut, crum)
+        leftCrum ← createNewCrum ()
+        rightCrum ← createNewCrum ()
+        disp(leftCrum) ← disp(crum)
+        wid(leftCrum) ← cut .-. disp(crum)
+        disp(rightCrum) ← cut
+        wid(rightCrum) ← wid(crum) .+. disp(crum) .-. cut
+        for each child of crum
+                if ((disp(child) .+. wid(child)) .<. cut)
+                        adopt (leftCrum, child)
+                else  if (cut .<=. disp(child))
+                        adopt (rightCrum, child)
+                else 
+                        newChildSet ← split(cut .-. disp(child), child)
+                        adopt (leftCrum, leftChild(newChildSet))
+                        adopt (rightCrum, rightChild(newChildSet))
+                end if
+        end for
+        result ← makeChildSet(leftCrum, rightCrum)
+end split
+
+
+
+
+
+append (newThing, beyond, where)
+        potentialNewCrum ← recursiveAppend (newThing, fulcrum, beyond, where)
+        if (notNull(potentialNewCrum))
+                levelPush (potentialNewCrum)
+        end if
+end append
+
+recursiveAppend (newThing, parent, beyond, where)
+    if (where .==. .O.)
+        newCrum ← createNewBottomCrum ()
+        data(newCrum) ← newThing
+        wid(newCrum) ← naturalWid(newThing)
+        disp(newCrum) ← disp(parent) .+. beyond
+        result ← newCrum
+    else 
+        for each child of parent
+            if (disp(child) .<=. where) and (where .<. (disp(child) .+. wid(child)))
+                potentialNewCrum ← recursiveAppend(newThing, child, beyond,
+                                                         wher
+levelPush (newCrum)
+        newFulcrum ← createNewCrum ()
+        disp(newFulcrum) ← .O.
+        wid(newFulcrum) ← enwidify(fulcrum, newCrum)
+        adopt (newFulcrum, fulcrum)
+        adopt (newFulcrum, newCrum)
+        fulcrum ← newFulcrum
+end levelPush
+
+
+
+
+
+
+primitiveRecombine (parent, sibling1, sibling2)
+        newCrum ← createNewCrum ()
+        disp(newCrum) ← disp(sibling1)
+        for each child of sibling1
+                disown(sibling1, child)
+                adopt (newCrum, child)
+        end for
+        dispCorrection ← disp(sibling2) .-. disp(sibling1)
+        for each child of sibling2
+                disown(sibling2, child)
+                disp(child) ← disp(child) .+. dispCorrection
+                adopt (newCrum, child)
+        end for
+        wid(newCrum) ← enwidify(children(newCrum))
+        disown(parent, sibling1)
+        disown(parent, sibling2)
+        adopt(parent, newCrum)
+
+
+
+
+
+levelPop ()
+        newFulcrum ← theOneChildOf(fulcrum)
+        disp(newFulcrum) ← disp(newFulcrum) .+. disp(fulcrum)
+        disown(fulcrum, newFulcrum)
+        fulcrum ← newFulcrum
+end levelPop
+
+
+
+
+
+
+
+
