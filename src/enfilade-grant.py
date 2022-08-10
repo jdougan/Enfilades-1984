@@ -397,8 +397,22 @@ def recursiveAppendGrant(parentNode, whereKey, beyond, newDomainThing):
 #
 #
 #
+def createOneValueEnfilade(key, value):
+	u = createNewNode()
+	b = createNewBottomNode()
+	setData(b, value)
+	setWidth(b, naturalWidth(value))
+	setDisp(b, key)
+	adopt(u,b)
+	setWidth(u, calculateWidth(children(u)))
+	setDisp(u, keyZero())
+	return u
+
+
 def append(topNode, whereKey, beyond, newDomainValue):
 	# returns a new topnode
+	if topNode is None:
+		return createOneValueEnfilade(keyAdd(whereKey, beyond), newDomainValue)
 	potentialNewNode = recursiveAppend(topNode, whereKey, beyond, newDomainValue)
 	if potentialNewNode is not None:
 		return levelPush(topNode, potentialNewNode)
