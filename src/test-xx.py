@@ -48,15 +48,16 @@ def dumpmd(enfilade, should=None,label=''):
 
 
 class Appends2(u.TestCase):
-	def construct01(testCase):
-		e2 = m.append(None, m.keyZero(), 1, 'A')
-		return e2
+	aptest = m.append1
 	def construct00(testCase):
 		empty = m.createNewNode()
 		m.setDisp(empty, m.keyZero())
 		m.setWidth(empty, m.keyZero())
 		one = m.append(empty, 1, m.keyZero() , 'A')
 		return one
+	def construct01(testCase):
+		e2 = m.append1(None, m.keyZero(), 1, 'A')
+		return e2
 	def construct03(testCase):
 		d = 'A'
 		b = m.createNewBottomNode()
@@ -72,36 +73,45 @@ class Appends2(u.TestCase):
 		m.setWidth(u, m.calculateWidth(m.children(u)))
 		return u
 	def constructBase(testCase):
-		return testCase.construct04()
+		return testCase.construct01()
 	def test00(testCase):
 		dprint('# base construct')
 		a = testCase.constructBase()
 		dprint(a)
 		dumpmd(a)
+		dprint()
 	def test01(testCase):
 		dprint('# append 0,2')
 		a = testCase.constructBase()
-		b = m.append(a, m.keyZero(), 2, 'B')
+		b = m.append1(a, m.keyZero(), 2, 'B')
 		dprint(b)
 		dumpmd(b)
+		dprint()
 	def test02(testCase):
 		dprint('# append 2,0')
 		a = testCase.constructBase()
-		b = m.append(a, 2, m.keyZero(), 'B')
+		b = None
+		with testCase.assertRaises(KeyError):
+			b = m.append1(a, 2, m.keyZero(), 'B')
 		dprint(b)
-		dumpmd(b)
+		#dumpmd(b)
+		dprint()
 	def test03(testCase):
 		dprint('# append 1,1')
 		a = testCase.constructBase()
-		b = m.append(a, 1, m.keyZero(), 'B')
+		b = m.append1(a, 1, m.keyZero(), 'B')
 		dprint(b)
 		dumpmd(b)
+		dprint()
 	def test04(testCase):
 		dprint('# append 1,0')
 		a = testCase.constructBase()
-		b = m.append(a, 1, 2, 'B')
+		b = m.append1(a, 1, 2, 'B')
 		dprint(b)
 		dumpmd(b)
+		dprint()
+
+
 
 
 

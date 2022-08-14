@@ -27,7 +27,7 @@ class NotImplemented(Exception):
 # DEBUG is None means no debug output at all, Otherwise it is an
 # integer with higher numbers revealing more debug data.
 3
-DEBUG = None
+DEBUG = 2
 #
 def dprint(*data, level=2):
 	if (DEBUG is not None) and (DEBUG >= level):
@@ -458,6 +458,101 @@ def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
 				return None
 		else:
 			return None
+
+
+
+
+#
+#
+#
+#
+
+def append1(topNode, topWhereKey, beyond, newDomainValue):
+	# reorg append to use private functions
+
+	def createOneValueEnfilade(key, value):
+		u = createNewNode()
+		b = createNewBottomNode()
+		setData(b, value)
+		setWidth(b, naturalWidth(value))
+		setDisp(b, key)
+		adopt(u,b)
+		setWidth(u, calculateWidth(children(u)))
+		setDisp(u, keyZero())
+		return u
+
+	def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
+		if DEBUG is not None:
+			myArgs = [parentNode, whereKey, beyond, newDomainThing]
+		else:
+			myArgs = None
+		dprint("* StartRA1", whereKey, beyond, newDomainThing)
+		if keyEquals(whereKey, keyZero()):
+			dprint("* bottom node creation", myArgs)
+			newNode = createNewBottomNode()
+			setData(newNode, newDomainThing)
+			setWidth(newNode, naturalWidth(newDomainThing))
+			setDisp(newNode, keyAdd(disp(parentNode), beyond))
+			dprint("    *", newNode, myArgs)
+			return newNode
+		else:
+			if nodeType(parentNode) is NODE_BOTTOM:
+				raise KeyError
+			potentialNewNode = None
+			dprint("* search", myArgs)
+			for eachChild in children(parentNode):
+				if keyLessThanOrEqual(disp(eachChild), whereKey) and keyLessThan(whereKey, keyAdd(disp(eachChild), width(eachChild))):
+					potentialNewNode = recursiveAppend(eachChild, keySubtract(whereKey, disp(eachChild)), beyond, newDomainThing)
+					break
+			if potentialNewNode is not None:
+				if numberOfChildren(parentNode) >= MAX_CHILD_NODES:
+					dprint("* upper node creation", myArgs)
+					newNode = createNewNode()
+					setDisp(newNode, disp(potentialNewNode))
+					setDisp(potentialNewNode, keyZero())
+					setWidth(newNode, width(potentialNewNode))
+					adopt(newNode, potentialNewNode)
+					dprint("    *", newNode, myArgs)
+					dprint("    *", potentialNewNode, myArgs)
+					return newNode
+				else:
+					dprint("* upper node adoption", myArgs)
+					setWidth(parentNode, calculateWidth(children(parentNode), [potentialNewNode]))
+					adopt(parentNode, potentialNewNode)
+					return None
+			else:
+				dprint("* no match")
+				raise KeyError
+				return None
+
+	if topNode is None:
+		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainValue)
+	# returns a new topnode
+	potentialNewNode = recursiveAppend(topNode, topWhereKey, beyond, newDomainValue)
+	if potentialNewNode is not None:
+		return levelPush(topNode, potentialNewNode)
+	else:
+		return topNode
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###################################################################
 # Tree cutting
