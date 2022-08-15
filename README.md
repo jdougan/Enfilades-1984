@@ -8,18 +8,20 @@ As the source and documentation I've generated this from is under MIT license, t
 Note that some of the pseudo-code samples there don't actually work.
 Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are just wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
-Functions that are suffixed with "Grant" are straight translations of the pseudo-code that are broken.
+Functions that are suffixed with "Grant" are straight translations of the pseudo-code that may be broken.
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology.
 
-The tests are in `grant-test.py` and currenty do not test cuts, recombines or rearranges.
+The tests are in `grant-test.py` and currently do not test cuts, recombines or rearranges.
 
 ### Issues
-* does weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
+* Does weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
+* Unclear on the possibility of negative key values.
 * Unclear what empty and single element enfilades
  should be like.
-* There are a couple possible ways to reconstruct retrieve(), not sure what was intended.
+* There are a couple of possible ways to reconstruct retrieve(), not sure what was intended.
 * Node splitting in append is getting disps wrong in the new node.
+* Data elements with a naturalWidth greater than 1 give unintuitive results.
 
 ### Sources 
 * Announcement of finding the grant app front mattter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
@@ -32,11 +34,11 @@ The tests are in `grant-test.py` and currenty do not test cuts, recombines or re
     * [Local DocBook source copy as of 2022-08-01](Xanadu%20Hypertext%20Documents-20220801.xml)
     * [Local MHTML copy as of 2022-08-01](doc/XHD-20220801.mhtml)
   
-### Terms Substituted
+### Terms Explained and Substituted
 This terminology is mostly Xanadu Green/xu88.1 specific.
 Gold/xu92.1 walked back a lot of the Green terminology as well as generating some of its own.
 
-A cleaned up Markdown version of the complete glossary in [[doc/XanaduSDF1984OCR.pdf]] is in [[doc/Glossary-1984.md]].
+A cleaned up Markdown version of the complete glossary in [the original scanned PDF](doc/XanaduSDF1984OCR.pdf) is in [doc/Glossary-1984.md](doc/Glossary-1984.md).
 
 * crum
     * (tree) node
