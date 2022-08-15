@@ -6,13 +6,20 @@ As the source and documentation I've generated this from is under MIT license, t
 ## Grant Application
 `enfilade-grant.py` is based on the description in the [Xanadu Operating Company's 1984 grant application to the System Development Foundation (SDF)](doc/XanaduSDF1984OCR.pdf).
 Note that some of the pseudo-code samples there don't actually work.
-Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my theories about deliberate mistakes to keep trade secrets are just wrong.
+Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are just wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
 Functions that are suffixed with "Grant" are straight translations of the pseudo-code that are broken.
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology.
 
 The tests are in `grant-test.py` and currenty do not test cuts, recombines or rearranges.
+
+### Issues
+* does weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
+* Unclear what empty and single element enfilades
+ should be like.
+* There are a couple possible ways to reconstruct retrieve(), not sure what was intended.
+* Node splitting in append is getting disps wrong in the new node.
 
 ### Sources 
 * Announcement of finding the grant app front mattter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/

@@ -486,49 +486,53 @@ def append1(topNode, topWhereKey, beyond, newDomainValue):
 			myArgs = [parentNode, whereKey, beyond, newDomainThing]
 		else:
 			myArgs = None
-		dprint("* StartRA1", whereKey, beyond, newDomainThing)
+		dprint("* StartRA1", myArgs)
 		if keyEquals(whereKey, keyZero()):
-			dprint("* bottom node creation", myArgs)
+			dprint("    * bottom node creation", myArgs)
 			newNode = createNewBottomNode()
 			setData(newNode, newDomainThing)
 			setWidth(newNode, naturalWidth(newDomainThing))
 			setDisp(newNode, keyAdd(disp(parentNode), beyond))
-			dprint("    *", newNode, myArgs)
+			dprint("* EndRA1", myArgs, newNode)
 			return newNode
 		else:
 			if nodeType(parentNode) is NODE_BOTTOM:
 				raise KeyError
 			potentialNewNode = None
-			dprint("* search", myArgs)
+			dprint("    * search", children(parentNode))
 			for eachChild in children(parentNode):
 				if keyLessThanOrEqual(disp(eachChild), whereKey) and keyLessThan(whereKey, keyAdd(disp(eachChild), width(eachChild))):
 					potentialNewNode = recursiveAppend(eachChild, keySubtract(whereKey, disp(eachChild)), beyond, newDomainThing)
 					break
+			dprint("    * hit?", potentialNewNode)
 			if potentialNewNode is not None:
 				if numberOfChildren(parentNode) >= MAX_CHILD_NODES:
-					dprint("* upper node creation", myArgs)
+					dprint("    * upper node creation", myArgs)
 					newNode = createNewNode()
 					setDisp(newNode, disp(potentialNewNode))
 					setDisp(potentialNewNode, keyZero())
 					setWidth(newNode, width(potentialNewNode))
 					adopt(newNode, potentialNewNode)
-					dprint("    *", newNode, myArgs)
-					dprint("    *", potentialNewNode, myArgs)
+					dprint("* EndRA1", myArgs , newNode)
 					return newNode
 				else:
-					dprint("* upper node adoption", myArgs)
+					dprint("    * upper node adoption", myArgs)
 					setWidth(parentNode, calculateWidth(children(parentNode), [potentialNewNode]))
 					adopt(parentNode, potentialNewNode)
+					dprint("* EndRA1", whereKey, beyond, newDomainThing)
 					return None
 			else:
-				dprint("* no match")
+				dprint("* EndRA1 no match")
 				raise KeyError
 				return None
-
+	#
+	#
+	#
 	if topNode is None:
 		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainValue)
 	# returns a new topnode
 	potentialNewNode = recursiveAppend(topNode, topWhereKey, beyond, newDomainValue)
+	dprint("* Potential New Node" , potentialNewNode )
 	if potentialNewNode is not None:
 		return levelPush(topNode, potentialNewNode)
 	else:
