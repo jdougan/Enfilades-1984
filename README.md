@@ -24,14 +24,14 @@ The tests are in `grant-test.py` and currently do not test cuts, recombines or r
 * Data elements with a naturalWidth greater than 1 give unintuitive results.
 
 ### Sources 
-* Announcement of finding the grant app front mattter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
+* Announcement of finding the grant app front matter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
 * Announcement of finding the grant app: http://habitatchronicles.com/2019/03/a-lost-treasure-of-xanadu/
     * [Local copy of original PDF](doc/XanaduSDF1984OCR.pdf)
 * Announcement of HTML formatting: https://sentido-labs.com/en/library/#xanadu-1986
 * [Online HTML formatting of grant proposal](https://sentido-labs.com/en/library/201904240732/Xanadu%20Hypertext%20Documents.html)
-    * [Online DocBook source](Xanadu%20Hypertext%20Documents-20220801.xml)
-    * [Local HTML copy as of 2022-08-01](XHD-20220801/Xanadu%20Hypertext%20Documents.htm)
-    * [Local DocBook source copy as of 2022-08-01](Xanadu%20Hypertext%20Documents-20220801.xml)
+    * [Online DocBook source](https://sentido-labs.com/en/library/201904240732/Xanadu%20Hypertext%20Documents.xml)
+    * [Local HTML copy as of 2022-08-01](doc/XHD-20220801/Xanadu%20Hypertext%20Documents.htm)
+    * [Local DocBook source copy as of 2022-08-01](doc/Xanadu%20Hypertext%20Documents-20220801.xml)
     * [Local MHTML copy as of 2022-08-01](doc/XHD-20220801.mhtml)
   
 ### Terms Explained and Substituted
