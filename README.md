@@ -73,7 +73,18 @@ One of the reasons they used the names wids and dsps (besides for abbreviation) 
 They thought introducing new terminology would be clearer as it comes with no expectations.
 
 ## Model-T
-To be determined.
+The claim made by Ted Nelson is that the first enfilade, the Model-T (for Text) was developed in 1972 as part of the Juggler of Text (JoT) development FIXME.
+They were kept under trade secret until the open source Udanax release in 1999.
+
+It has been rediscovered independently by Rodney M. Bates (who called them K-Trees or Sequence Trees) and were published in Dr. Dobbs in 1994 and later republished to GitHub.
+
+The Ropes data structure, which is also very similar to the Model-T and K-trees, was invented around the same time as K-trees and published in 1995.  
+
+### Sources
+* [K-Trees reference implementation 2022 at GitHub](https://github.com/RodneyBates/ktrees)
+* [Dr.Dobbs article 1994]()
+* Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) ["Ropes: an Alternative to Strings" at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
+* [Wikipedia](https://en.wikipedia.org/wiki/Rope_(data_structure))
 
 ## Implicit 2D
 To be determined.
