@@ -15,13 +15,13 @@ What I have tried to do is convert some of the idiosyncratic Xanadu terminology 
 The tests are in `grant-test.py` and currently do not test cuts, recombines or rearranges.
 
 ### Issues
+* Internally there are no checks to see it a node is upper or bottom, which would make more sense than the key checking in the pseudocode.
 * Does weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
 * Unclear on the possibility of negative key values.
-* Unclear what empty and single element enfilades
- should be like.
+* Unclear what empty and single element enfilades should be like.
 * There are a couple of possible ways to reconstruct retrieve(), not sure what was intended.
 * Node splitting in append is getting disps wrong in the new node.
-* Data elements with a naturalWidth greater than 1 give unintuitive results.
+* Appending data elements with a naturalWidth greater than 1 gives unintuitive results.
 
 ### Sources 
 * Announcement of finding the grant app front matter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
@@ -81,7 +81,7 @@ It has been rediscovered independently by Rodney M. Bates (who called them K-Tre
 The Ropes data structure, which is also very similar to the Model-T and K-trees, was invented around the same time as K-trees and published in 1995.  
 
 ### Sources
-* [K-Trees reference implementation 2022 at GitHub](https://github.com/RodneyBates/ktrees)
+* [K-Trees reference implementations 2022 at GitHub](https://github.com/RodneyBates/ktrees)
 * [Dr.Dobbs article 1994]()
 * Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) ["Ropes: an Alternative to Strings" at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
 * [Wikipedia](https://en.wikipedia.org/wiki/Rope_(data_structure))
