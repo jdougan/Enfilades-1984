@@ -27,7 +27,7 @@ class NotImplemented(Exception):
 # DEBUG is None means no debug output at all, Otherwise it is an
 # integer with higher numbers revealing more debug data.
 3
-DEBUG = 2
+DEBUG = None
 #
 def dprint(*data, level=2):
 	if (DEBUG is not None) and (DEBUG >= level):
@@ -54,6 +54,16 @@ def keyLessThan(a,b):
 	return a < b
 def keyLessThanOrEqual(a,b):
 	return a <= b
+def keyMin(collKeys, lt=keyLessThan):
+	assert(len(collKeys) > 0)
+	if len(collKeys) == 1:
+		return collKeys[0]
+	mmin = collKeys[0]
+	for i in range(1,len(collKeys)):
+		if lt(collKeys[i], mmin):
+			mmin = collKeys[i]
+	return mmin
+
 
 #
 # 
@@ -86,6 +96,8 @@ class Node:
 		node.myChildren = None
 	def __str__(node):
 		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, node.myChildren]) +  ')'
+	def __repr__(node):
+		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, numberOfChildren(node)]) +  ')'
 
 def createNewBottomNode():
 	n = Node()
@@ -128,18 +140,18 @@ def children(node):
 	# extra bits for efficient I/O management.
 	if node.myChildren is None:
 		if node.myNodeType == NODE_BOTTOM:
-			dprint('* BACKSTOPPED children on bottom node', level=1)
+			dprint('* BACKSTOPPED children on bottom node', level=9)
 		else:
-			dprint('* BACKSTOPPED children on upper node', level=1)
+			dprint('* BACKSTOPPED children on upper node', level=9)
 		return ()
 	else:
 		return node.myChildren
 def numberOfChildren(node):
 	if node.myChildren is None:
 		if node.myNodeType == NODE_BOTTOM:
-			dprint('* BACKSTOPPED numberOfChildren on bottom node', level=1)
+			dprint('* BACKSTOPPED numberOfChildren on bottom node', level=9)
 		else:
-			dprint('* BACKSTOPPED numberOfChildren on upper node', level=1)
+			dprint('* BACKSTOPPED numberOfChildren on upper node', level=9)
 		return 0
 	else:
 		return len(node.myChildren)
@@ -174,6 +186,7 @@ def theOneChildOf(node):
 # Nothing below this line should be aware
 # of the internal implementation structure of a Node,
 #
+# Impllementation of enwidify in XanaSpeak.
 #
 class BoundsSum(object):
 	def __init__(self):
@@ -189,6 +202,7 @@ class BoundsSum(object):
 			if keyLessThan(self.kmax,dsp):
 				self.kmax = dsp
 	def addNode(self,node):
+		dprint(node)
 		self.addDsp(disp(node))
 		self.addDsp(keyAdd(disp(node), width(node)))
 	def addChildren(self,loaf):
@@ -198,10 +212,17 @@ class BoundsSum(object):
 		return keySubtract(self.kmax, self.kmin)
 	def minandmax(self):
 		return (self.kmin, self.kmax, self.width() )
-def calculateWidth(*childrens):
+def calculateWidthX(*childrens):
 	sum = BoundsSum()
 	for eachChildren in childrens:
 		sum.addChildren(eachChildren)
+	print("!!!!!!" , sum.width(), childrens)
+	return sum.width()
+def calculateWidth(*collOfCollOfNodes):
+	sum = BoundsSum()
+	for collOfNodes in collOfCollOfNodes:
+		sum.addChildren(collOfNodes)
+	print("!!!!!!width" , sum.width(), collOfCollOfNodes)
 	return sum.width()
 
 #
@@ -227,9 +248,52 @@ def dump(node, of=print, indent=0):
 		of(")")
 
 #
+# Walks the tree, using of to gather strings to show the structure.
+#
+def dumpPretty_eoln(of=print, indent=0, lineend=''):
+	of("\n" , end="", sep='')
+	for i in range(0,indent):
+		of("\t" , end="", sep='')
+def dumpPretty_print(*data, of=print):
+	of(*data, end='', sep='')
+def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
+	if nodeType(node) == NODE_BOTTOM :
+		terpri(indent=indent)
+		of("(BOTTOM", ' ', disp(node), ' ', width(node), ' ', data(node), ")")
+	else:
+		terpri(indent=indent)
+		of("(UPPER", ' ', disp(node), ' ', width(node) )
+		for each in children(node) :
+			dumpPretty(each, of=of, indent=indent+1, terpri=terpri)
+		#terpri(indent=indent)
+		of(")")
+
+def createOneValueEnfilade(key, value):
+	b = createNewBottomNode()
+	setData(b, value)
+	setWidth(b, naturalWidth(value))
+	setDisp(b, keyZero())
+	u = createNewNode()
+	adopt(u,b)
+	setWidth(u, calculateWidth(children(u)))
+	setDisp(u, key)
+	return u
+
+def normalizeDisps(node):
+	# adjust child dsps and my disp to sum to the same but with the lowest child disp becomin keyZero
+	# raise NotImplemented("append2.normalizeDisps()")
+	assert(numberOfChildren(node) > 0)
+	childDsps  = [disp(c) for c in children(node)]
+	minChildDsp = keyMin(childDsps) 
+	setDisp(node, keyAdd(disp(node), minChildDsp))
+	for eachChild in children(node):
+		setDisp(eachChild, keySubtract( disp(eachChild) , minChildDsp ))
+
+#
 #
 #
 def levelPush(topNode, newNode):
+	#FIXME do  we need to do an anjustDisps, or leave to the caller
 	newTopNode = createNewNode()
 	setDisp(newTopNode, keyZero())
 	setWidth(newTopNode, calculateWidth([topNode,newNode]))
@@ -241,10 +305,13 @@ def levelPush(topNode, newNode):
 #
 def levelPop(topNode):
 	# theOneChildOf will raise if the are 0 or >1 children
+	#FIXME do  we need to do an anjustDisps, or leave to the caller
 	newTopNode = theOneChildOf(topNode)
 	setDisp(newTopNode,  keyAdd(disp(newTopNode), disp(topNode)))
 	disown(topNode, newTopNode)
 	return newTopNode
+
+
 
 #################################################################
 # RETRIEVES
@@ -271,28 +338,6 @@ def recursiveRetrieveGrant(node, key, cumulativeKey):
 			if keyLessThanOrEqual(eachDspStart, key) and keyLessThan(key , eachDspEnd) :
 				return recursiveRetrieveGrant(eachChild, key, keyAdd(cumulativeKey, eachDspStart))
 
-#
-# Partially fixed.
-# Only returns first hit.
-# Probably could be cleaned up some.
-# unintuitive in cases where width of bottom node data width is > 1.
-#
-def retrieve(topNode, key):
-	return recursiveRetrieve(topNode, key, keyAdd(keyZero(),disp(node)))
-def recursiveRetrieve(node, keyInRootSpace, cumulativeKey):
-	dprint('* Node start:' , node, 'keyInRoot:' , keyInRootSpace, 'ckInRoot:', cumulativeKey)
-	if keyEquals( cumulativeKey, keyInRootSpace ):
-		return data(node)
-	else:
-		# translate the key into local key space
-		keyInLocalSpace = keySubtract(keyInRootSpace, cumulativeKey)
-		for eachChild in children(node) :
-			eachDspStart = disp(eachChild)
-			eachWidth = width(eachChild)
-			eachDspEnd = keyAdd(eachDspStart ,  eachWidth)
-			dprint('    * Child startDsp:', eachDspStart, 'wid:', eachWidth, 'localKey:', keyInLocalSpace, 'endDsp:', eachDspEnd)
-			if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
-				return recursiveRetrieve(eachChild, keyInRootSpace, keyAdd(cumulativeKey, eachDspStart), fn)
 
 #
 # Original-ish, approx as laid out in the grant. 
@@ -314,6 +359,28 @@ def recursiveRetrieveAllGrant(node, key, cumulativeKey, resultSet):
 			# Problem: we are comparing keys in local space with keys in root space
 			if keyLessThanOrEqual(eachDspStart, key) and keyLessThan(key , eachDspEnd):
 				recursiveRetrieveAllGrant(eachChild, key, keyAdd(cumulativeKey, eachDspStart), resultSet)
+#
+# Partially fixed.
+# Only returns first hit.
+# Probably could be cleaned up some.
+# unintuitive in cases where width of bottom node data width is > 1.
+#
+def retrieve(topNode, key):
+	return recursiveRetrieve(topNode, key, keyAdd(keyZero(),disp(topNode)))
+def recursiveRetrieve(node, keyInRootSpace, cumulativeKey):
+	dprint('* Node start:' , node, 'keyInRoot:' , keyInRootSpace, 'ckInRoot:', cumulativeKey)
+	if keyEquals( cumulativeKey, keyInRootSpace ):
+		return data(node)
+	else:
+		# translate the key into local key space
+		keyInLocalSpace = keySubtract(keyInRootSpace, cumulativeKey)
+		for eachChild in children(node) :
+			eachDspStart = disp(eachChild)
+			eachWidth = width(eachChild)
+			eachDspEnd = keyAdd(eachDspStart ,  eachWidth)
+			dprint('    * Child startDsp:', eachDspStart, 'wid:', eachWidth, 'localKey:', keyInLocalSpace, 'endDsp:', eachDspEnd)
+			if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
+				return recursiveRetrieve(eachChild, keyInRootSpace, keyAdd(cumulativeKey, eachDspStart))
 
 #
 # Original-ish, approx as laid out in the grant. 
@@ -323,20 +390,23 @@ def recursiveRetrieveAllGrant(node, key, cumulativeKey, resultSet):
 def retrieveAllInto(node, keyInRootSpace, resultSet):
 	def gatherFn(datum, dataNode=None):
 		resultSet.add(datum)
-	retrieveAll(node, keyInRootSpace, gatherFn)
+	retrieveAllFn(node, keyInRootSpace, gatherFn)
 	return resultSet
 def retrieveAllIntoList(node, keyInRootSpace, resultList):
 	def gatherFn(datum, dataNode=None):
 		resultList.append(datum)
-	retrieveAll(node, keyInRootSpace, gatherFn)
+	retrieveAllFn(node, keyInRootSpace, gatherFn)
 	return resultList
 #
-def retrieveAll(node, keyInRootSpace, fn):
-	recursiveRetrieveAll(node, keyInRootSpace, keyAdd(keyZero(),disp(node)), fn)
-def recursiveRetrieveAll(node, keyInRootSpace, cumulativeKey, fn):
+def retrieveAllFn(node, keyInRootSpace, fn):
+	recursiveRetrieveAllFn(node, keyInRootSpace, keyAdd(keyZero(),disp(node)), fn)
+def recursiveRetrieveAllFn(node, keyInRootSpace, cumulativeKey, fn):
 	dprint('* Node start:' , node, 'keyInRoot:' , keyInRootSpace, 'ckInRoot:', cumulativeKey)
-	if keyEquals( cumulativeKey, keyInRootSpace ):
-		fn(data(node), node)
+	if ( nodeType(node) == NODE_BOTTOM  ):
+		if keyEquals( cumulativeKey, keyInRootSpace ):
+			fn(data(node), node)
+		else:
+			pass
 	else:
 		# translate  the key into local key space
 		keyInLocalSpace = keySubtract(keyInRootSpace, cumulativeKey)
@@ -346,7 +416,30 @@ def recursiveRetrieveAll(node, keyInRootSpace, cumulativeKey, fn):
 			eachDspEnd = keyAdd(eachDspStart ,  eachWidth)
 			dprint('    * Child startDsp:', eachDspStart, 'wid:', eachWidth, 'localKey:', keyInLocalSpace, 'endDsp:', eachDspEnd)
 			if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
-				recursiveRetrieveAll(eachChild, keyInRootSpace, keyAdd(cumulativeKey, eachDspStart), fn)
+				recursiveRetrieveAllFn(eachChild, keyInRootSpace, keyAdd(cumulativeKey, eachDspStart), fn)
+
+def retrieveAllIntoList2(rootNode, keyInRootSpace, resultList):
+	def gatherFn(datum, dataNode=None):
+		resultList.append(datum)
+	retrieveAll2(rootNode, keyInRootSpace, gatherFn)
+	return resultList
+def retrieveAll2(rootNode, keyInRootSpace, fn):
+	def recursiveRetrieveAll(node, cumulativeKey):
+		dprint('* Node start:' , node, 'keyInRoot:' , keyInRootSpace, 'ckInRoot:', cumulativeKey)
+		if keyEquals( cumulativeKey, keyInRootSpace ):
+			fn(data(node), node)
+		else:
+			# translate  the key into local key space
+			keyInLocalSpace = keySubtract(keyInRootSpace, cumulativeKey)
+			for eachChild in children(node) :
+				eachDspStart = disp(eachChild)
+				eachWidth = width(eachChild)
+				eachDspEnd = keyAdd(eachDspStart ,  eachWidth)
+				dprint('    * Child startDsp:', eachDspStart, 'wid:', eachWidth, 'localKey:', keyInLocalSpace, 'endDsp:', eachDspEnd)
+				if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
+					recursiveRetrieveAll(eachChild, keyAdd(cumulativeKey, eachDspStart))
+	#
+	recursiveRetrieveAll(node, keyInRootSpace, keyAdd(keyZero(),disp(node)), fn)
 
 ##################################################
 # APPENDS
@@ -393,168 +486,75 @@ def recursiveAppendGrant(parentNode, whereKey, beyond, newDomainThing):
 		else:
 			return None
 
-#
-#
-#
-#
-def createOneValueEnfilade(key, value):
-	u = createNewNode()
-	b = createNewBottomNode()
-	setData(b, value)
-	setWidth(b, naturalWidth(value))
-	setDisp(b, key)
-	adopt(u,b)
-	setWidth(u, calculateWidth(children(u)))
-	setDisp(u, keyZero())
-	return u
 
-
-def append(topNode, whereKey, beyond, newDomainValue):
-	# returns a new topnode
-	if topNode is None:
-		return createOneValueEnfilade(keyAdd(whereKey, beyond), newDomainValue)
-	potentialNewNode = recursiveAppend(topNode, whereKey, beyond, newDomainValue)
-	if potentialNewNode is not None:
-		return levelPush(topNode, potentialNewNode)
-	else:
-		return topNode
-#
-def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
-	if DEBUG is not None:
-		myArgs = [parentNode, whereKey, beyond, newDomainThing]
-	else:
-		myArgs = None
-	#dprint("*", whereKey, beyond, newDomainThing)
-	if keyEquals(whereKey, keyZero()):
-		dprint("* bottom node creation", myArgs)
-		newNode = createNewBottomNode()
-		setData(newNode, newDomainThing)
-		setWidth(newNode, naturalWidth(newDomainThing))
-		setDisp(newNode, keyAdd(disp(parentNode), beyond))
-		dprint("    *", newNode, myArgs)
-		return newNode
-	else:
-		potentialNewNode = None
-		dprint("* search", myArgs)
-		for eachChild in children(parentNode):
-			if keyLessThanOrEqual(disp(eachChild), whereKey) and keyLessThan(whereKey, keyAdd(disp(eachChild), width(eachChild))):
-				potentialNewNode = recursiveAppend(eachChild, keySubtract(whereKey, disp(eachChild)), beyond, newDomainThing)
-				break
-		if potentialNewNode is not None:
-			if numberOfChildren(parentNode) >= MAX_CHILD_NODES:
-				dprint("* upper node creation", myArgs)
-				newNode = createNewNode()
-				setDisp(newNode, disp(potentialNewNode))
-				setDisp(potentialNewNode, keyZero())
-				setWidth(newNode, width(potentialNewNode))
-				adopt(newNode, potentialNewNode)
-				dprint("    *", newNode, myArgs)
-				dprint("    *", potentialNewNode, myArgs)
-				return newNode
-			else:
-				dprint("* upper node adoption", myArgs)
-				setWidth(parentNode, calculateWidth(children(parentNode), [potentialNewNode]))
-				adopt(parentNode, potentialNewNode)
-				return None
-		else:
-			return None
-
-
-
-
-#
-#
-#
-#
-
-def append1(topNode, topWhereKey, beyond, newDomainValue):
+def append(topNode, topWhereKey, beyond, newDomainThing):
 	# reorg append to use private functions
-
-	def createOneValueEnfilade(key, value):
-		u = createNewNode()
-		b = createNewBottomNode()
-		setData(b, value)
-		setWidth(b, naturalWidth(value))
-		setDisp(b, key)
-		adopt(u,b)
-		setWidth(u, calculateWidth(children(u)))
-		setDisp(u, keyZero())
-		return u
-
-	def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
+	# I'm not happpy with the scattershot use of normalizeDisps,
+	# nedd to look at more targeted use.
+	def recursiveAppend(parentNode, whereKey):
 		if DEBUG is not None:
-			myArgs = [parentNode, whereKey, beyond, newDomainThing]
+			myArgs = [parentNode, whereKey]
 		else:
 			myArgs = None
 		dprint("* StartRA1", myArgs)
-		if keyEquals(whereKey, keyZero()):
-			dprint("    * bottom node creation", myArgs)
-			newNode = createNewBottomNode()
-			setData(newNode, newDomainThing)
-			setWidth(newNode, naturalWidth(newDomainThing))
-			setDisp(newNode, keyAdd(disp(parentNode), beyond))
-			dprint("* EndRA1", myArgs, newNode)
-			return newNode
+		if (nodeType(parentNode) == NODE_BOTTOM) :
+			if keyEquals(whereKey, keyZero()):
+				dprint("    * bottom node creation", myArgs)
+				newNode = createNewBottomNode()
+				setData(newNode, newDomainThing)
+				setWidth(newNode, naturalWidth(newDomainThing))
+				setDisp(newNode, keyAdd(disp(parentNode), beyond))
+				dprint("* EndRA1", myArgs, newNode)
+				return newNode
+			else:
+				raise KeyError("bottom node no-match")
 		else:
 			if nodeType(parentNode) is NODE_BOTTOM:
-				raise KeyError
+				raise KeyError("Found Bottom node, expecting upper node")
 			potentialNewNode = None
 			dprint("    * search", children(parentNode))
 			for eachChild in children(parentNode):
 				if keyLessThanOrEqual(disp(eachChild), whereKey) and keyLessThan(whereKey, keyAdd(disp(eachChild), width(eachChild))):
-					potentialNewNode = recursiveAppend(eachChild, keySubtract(whereKey, disp(eachChild)), beyond, newDomainThing)
+					potentialNewNode = recursiveAppend(eachChild, keySubtract(whereKey, disp(eachChild)))
 					break
-			dprint("    * hit?", potentialNewNode)
+			dprint("        * hit?", potentialNewNode)
 			if potentialNewNode is not None:
 				if numberOfChildren(parentNode) >= MAX_CHILD_NODES:
 					dprint("    * upper node creation", myArgs)
 					newNode = createNewNode()
-					setDisp(newNode, disp(potentialNewNode))
+					setDisp(newNode, keyAdd(disp(potentialNewNode),disp(parentNode)))
 					setDisp(potentialNewNode, keyZero())
 					setWidth(newNode, width(potentialNewNode))
 					adopt(newNode, potentialNewNode)
+					normalizeDisps(parentNode)
 					dprint("* EndRA1", myArgs , newNode)
 					return newNode
 				else:
 					dprint("    * upper node adoption", myArgs)
 					setWidth(parentNode, calculateWidth(children(parentNode), [potentialNewNode]))
 					adopt(parentNode, potentialNewNode)
-					dprint("* EndRA1", whereKey, beyond, newDomainThing)
+					normalizeDisps(parentNode)
+					dprint("* EndRA1", myArgs, beyond, newDomainThing)
 					return None
 			else:
-				dprint("* EndRA1 no match")
-				raise KeyError
+				setWidth(parentNode, calculateWidth(children(parentNode)))
+				normalizeDisps(parentNode)
+				dprint("* EndRA1 no match", myArgs)
 				return None
 	#
 	#
 	#
 	if topNode is None:
-		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainValue)
+		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainThing)
 	# returns a new topnode
-	potentialNewNode = recursiveAppend(topNode, topWhereKey, beyond, newDomainValue)
+	potentialNewNode = recursiveAppend(topNode, keySubtract(topWhereKey, disp(topNode)))
 	dprint("* Potential New Node" , potentialNewNode )
 	if potentialNewNode is not None:
-		return levelPush(topNode, potentialNewNode)
+		newTop =  levelPush(topNode, potentialNewNode)
 	else:
-		return topNode
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		newTop = topNode
+	normalizeDisps(newTop)
+	return newTop
 
 
 

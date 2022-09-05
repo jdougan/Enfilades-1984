@@ -5,23 +5,38 @@ As the source and documentation I've generated this from is under MIT license, t
 
 ## Grant Application
 `enfilade-grant.py` is based on the description in the [Xanadu Operating Company's 1984 grant application to the System Development Foundation (SDF)](doc/XanaduSDF1984OCR.pdf).
-Note that some of the pseudo-code samples there don't actually work.
+Note that the pseudo-code samples there don't actually work.
 Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are just wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
-Functions that are suffixed with "Grant" are straight translations of the pseudo-code that may be broken.
+Functions that are suffixed with "Grant" are straight translations of the pseudo-code and are broken.
+Some of the support functions (levelPush, levelPop, etc.) are as as indicated in the pseudo-code and are working.
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology.
 
 The tests are in `grant-test.py` and currently do not test cuts, recombines or rearranges.
 
+#### Notes
+* 2022-09-04 Finally have retrieve and append working acceptably well. Need to fix tests next.
+* 2022-09-03 I understand now! 
+It appears to be intended that the disps of the children of a node should start from keyZero, so the search in the parent node works correctly. 
+This normalization can be done by finding the smallest key, subtracting it from each of the child keys, and adding it to the node disp. 
+Everyone should be at the same offset and the interval check in the parent retrieve should work.
+* 2022-09-01 Append isn't recalculating widths on the way back up from the insertion!
+* 2022-08-?? Append isn't adopting the new child nodes on the way back up  from the insertion!
+
+
 ### Issues
 * Internally there are no checks to see it a node is upper or bottom, which would make more sense than the key checking in the pseudocode.
-* Does weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
+* ~~Does~~ Did weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
+    * This was an artifact of the disps and widths not being normalized properly, along with relying on key tests for recursion termination instead of checking for bottom/uppper node first.
+    * It wasn't mentioned anywhere that keyZero normalization would be required.
 * Unclear on the possibility of negative key values.
 * Unclear what empty and single element enfilades should be like.
+    * after experimentation decided that empty is Nil/None and single is a upper and bottom normalized.
 * There are a couple of possible ways to reconstruct retrieve(), not sure what was intended.
 * Node splitting in append is getting disps wrong in the new node.
-* Appending data elements with a naturalWidth greater than 1 gives unintuitive results.
+    * Lots of issues with append.
+* Appending data elements with a naturalWidth greater than 1 gives unintuitive results on retrieval.
 
 ### Sources 
 * Announcement of finding the grant app front matter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
@@ -72,13 +87,15 @@ A cleaned up Markdown version of the complete glossary in [the original scanned 
 One of the reasons they used the names wids and dsps (besides for abbreviation) is because they connote a specific set of mathematical properties that the enfilade depends on, and functions and types with these properties may not involve actual widths or displacements.
 They thought introducing new terminology would be clearer as it comes with no expectations.
 
+
+
 ## Model-T
 The claim made by Ted Nelson is that the first enfilade, the Model-T (for Text) was developed in 1972 as part of the Juggler of Text (JoT) development FIXME.
 They were kept under trade secret until the open source Udanax release in 1999.
 
 It has been rediscovered independently by Rodney M. Bates (who called them K-Trees or Sequence Trees) and were published in Dr. Dobbs in 1994 and later republished to GitHub.
 
-The Ropes data structure, which is also very similar to the Model-T and K-trees, was invented around the same time as K-trees and published in 1995.  
+The Ropes data structure, which is also very similar to the Model-T and K-trees, was invented around the same time as K-trees and published in 1995.
 
 ### Sources
 * [K-Trees reference implementations 2022 at GitHub](https://github.com/RodneyBates/ktrees)

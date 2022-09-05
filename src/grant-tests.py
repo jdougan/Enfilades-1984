@@ -20,7 +20,7 @@ def describe(label, item):
 	print(label, type(item), lenInt, item)
 
 def dprint(*data, level=2):
-	if (DEBUG is not None) & (DEBUG >= level):
+	if (DEBUG is not None) and (DEBUG >= level):
 		print(*data)
 
 def dumptxt(enfilade, should=None):
@@ -182,39 +182,64 @@ class DARetrievalsMulti(u.TestCase):
 		for i in range(0,2):
 			testCase.commonRetrieve(top, testCase.RetrieveFns[i], testCase.RetrieveFnLabels[i],shouldOffset=1)
 
-class EAAppends(u.TestCase):
-	def test01Append(testCase):
-		dprint('# Appends.testAppend')
-		dprint('## t1')
-		t1 = createTestEnfilade01()
-		dump(t1)
+
+class AppendsBase(u.TestCase):
+	def retrieveCheck1(testCase,enf,start,end):
+		arr = []
+		for i in range(start,end+1) :
+			try:
+				each = m.retrieveAllIntoList(enf,i,list())
+			except Exception as ex:
+				each = 'ERROR' + ex
+			arr.append(i)
+			arr.append(each)
+		return arr
+	def retrieveCheck2(testCase,enf,start,end):
+		arr = []
+		for i in range(start,end+1) :
+			each = m.retrieve(enf,i)
+			arr.append(each)
+		return arr
+
+class Append1(AppendsBase):
+	def test00LeftAppend(testCase):
 		dprint()
-		dprint('## t2')
-		t2 = m.append(t1, 7, 100, 'C')
-		dump(t1)
-		dump(t2)
+		things = []
+		indexes = []
+		i = 0
+		for each in range(65,65+26):
+			things.append(chr(each))
+			indexes.append(i)
+			i = i + 1
+		top = None
+		for each in indexes:
+			top = m.append(top, 1, each, things[each])
+		m.dumpPretty(top)
 		dprint()
-		dprint('## t3')
-		t3 = m.append(t2, 6, 200, 'D ')
-		dump(t1)
-		dump(t2)
-		dump(t3)
+		dprint("    ",testCase.retrieveCheck1(top,0,27))
+	#
+class Append2(AppendsBase):
+	def test00RightAppend(testCase):
+		testCase.linearAppendToTail(1)
+	#
+	def linearAppendToTail(testCase,startIndex):
+		def charForIndex(i):
+			return chr(65 + i - startIndex)
+		m.DEBUG = 1
 		dprint()
-		dprint('## t4')
-		t4 = m.append(t3, 5, 200, 'E')
-		dump(t1)
-		dump(t2)
-		dump(t3)
-		dump(t4)
-		dprint()
-		dprint('## t5')
-		t5 = m.append(t4, 7, 50, 'F')
-		dump(t1)
-		dump(t2)
-		dump(t3)
-		dump(t4)
-		dump(t5)
-		dprint()
+		top = None
+		dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
+		top = m.append(top, startIndex , 0, charForIndex(startIndex))
+		last = startIndex + 0
+		for i in range(startIndex+1,startIndex+26):
+			dprint()
+			dprint("APPEND5", last, 1, charForIndex(i))
+			top = m.append(top, last , 1, charForIndex(i))
+			last = last + 1
+			dprint()
+			m.dumpPretty(top)
+			dprint()
+			dprint("    ",testCase.retrieveCheck1(top,0,27))
 
 
 if __name__ == '__main__':
