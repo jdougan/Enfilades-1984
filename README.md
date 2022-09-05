@@ -6,10 +6,10 @@ As the source and documentation I've generated this from is under MIT license, t
 ## Grant Application
 `enfilade-grant.py` is based on the description in the [Xanadu Operating Company's 1984 grant application to the System Development Foundation (SDF)](doc/XanaduSDF1984OCR.pdf).
 Note that the pseudo-code samples there don't actually work.
-Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are just wrong.
+Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are apparently wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
 Functions that are suffixed with "Grant" are straight translations of the pseudo-code and are broken.
-Some of the support functions (levelPush, levelPop, etc.) are as as indicated in the pseudo-code and are working.
+Some of the support functions (levelPush, levelPop, etc.) are as as indicated in the pseudo-code and are working so have no "Grant" suffixed version..
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology.
 
@@ -20,19 +20,25 @@ The tests are in `grant-test.py` and currently do not test cuts, recombines or r
 * 2022-09-03 I understand now! 
 It appears to be intended that the disps of the children of a node should start from keyZero, so the search in the parent node works correctly. 
 This normalization can be done by finding the smallest key, subtracting it from each of the child keys, and adding it to the node disp. 
-Everyone should be at the same offset and the interval check in the parent retrieve should work.
+Every child should then be at the same offset and the interval check in the parent retrieve should work.
 * 2022-09-01 Append isn't recalculating widths on the way back up from the insertion!
 * 2022-08-?? Append isn't adopting the new child nodes on the way back up  from the insertion!
+* 2022-08-?? Append isn't searching the child keys the same way as retrieve.
+Looks to be the same results though.
+* 2022-07-?? Retrieve isn't adjusting the key spaces to local before searching children.
 
 
 ### Issues
-* Internally there are no checks to see it a node is upper or bottom, which would make more sense than the key checking in the pseudocode.
+* In the pseudo-code there are no checks to see it a node is upper or bottom, which would make more sense than the key checking in the pseudo-code.
 * ~~Does~~ Did weird things with zero (.0.) keys, seems they should not be used, but no mention of this or error checking.
-    * This was an artifact of the disps and widths not being normalized properly, along with relying on key tests for recursion termination instead of checking for bottom/uppper node first.
-    * It wasn't mentioned anywhere that keyZero normalization would be required.
+    * This was an artifact of relying on key tests for recursion termination instead of checking for a bottom/upper node first.
+    * Also influenced  by the disps and widths not being normalized.
+    * It wasn't mentioned anywhere that keyZero normalization would be expected.
 * Unclear on the possibility of negative key values.
+    * It should work now, needs to be tested.
 * Unclear what empty and single element enfilades should be like.
-    * after experimentation decided that empty is Nil/None and single is a upper and bottom normalized.
+    * After experimentation decided that empty is Nil/None and single is a upper and bottom normalized.
+    * Potentially single bottom node could work with some small changes.
 * There are a couple of possible ways to reconstruct retrieve(), not sure what was intended.
 * Node splitting in append is getting disps wrong in the new node.
     * Lots of issues with append.

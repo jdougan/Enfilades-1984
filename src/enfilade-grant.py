@@ -9,9 +9,9 @@
 # don't have to split bottom crums/nodes.
 #
 # This is not idiomatic python, I'm trying to get close to the
-# pseudocode with 2 sets of changes: correctness, and changing the
+# pseudo-code with 2 sets of changes: correctness, and changing the
 # names to make more sense to a 21st century developer. If the pseudo
-# code version is incorrect, it will appear with a 'Grant' suffixs on
+# code version is incorrect, it will appear with a 'Grant' suffix on
 # the names.
 #
 # Note that a lot of the test debug output is Markdown formatted.
@@ -26,7 +26,6 @@ class NotImplemented(Exception):
 
 # DEBUG is None means no debug output at all, Otherwise it is an
 # integer with higher numbers revealing more debug data.
-3
 DEBUG = None
 #
 def dprint(*data, level=2):
@@ -54,6 +53,7 @@ def keyLessThan(a,b):
 	return a < b
 def keyLessThanOrEqual(a,b):
 	return a <= b
+# not defined in the grant app, but it makes life easier for normalization
 def keyMin(collKeys, lt=keyLessThan):
 	assert(len(collKeys) > 0)
 	if len(collKeys) == 1:
@@ -63,7 +63,6 @@ def keyMin(collKeys, lt=keyLessThan):
 		if lt(collKeys[i], mmin):
 			mmin = collKeys[i]
 	return mmin
-
 
 #
 # 
@@ -77,7 +76,7 @@ def naturalWidth(d):
 NODE_BOTTOM = 1
 NODE_UPPER = 2
 
-# For upper crums/nodes
+# For upper crums/nodes. Grant app  specs 8, I'm using 4 because it is easier to test.
 MAX_CHILD_NODES = 4
 
 class UninitializedChildren(Exception):
@@ -158,7 +157,7 @@ def numberOfChildren(node):
 
 #
 # Could be renamed to addChild/removeChild
-# FIXME: what happens f we do  this to a bottom node?
+# FIXME: what happens if we do  this to a bottom node?
 #
 def adopt(parentNode, childNode):
 	if parentNode.myChildren is None :
@@ -216,13 +215,13 @@ def calculateWidthX(*childrens):
 	sum = BoundsSum()
 	for eachChildren in childrens:
 		sum.addChildren(eachChildren)
-	print("!!!!!!" , sum.width(), childrens)
+	dprint("!!!!!!" , sum.width(), childrens)
 	return sum.width()
 def calculateWidth(*collOfCollOfNodes):
 	sum = BoundsSum()
 	for collOfNodes in collOfCollOfNodes:
 		sum.addChildren(collOfNodes)
-	print("!!!!!!width" , sum.width(), collOfCollOfNodes)
+	dprint("!!!!!!width" , sum.width(), collOfCollOfNodes)
 	return sum.width()
 
 #
@@ -250,10 +249,10 @@ def dump(node, of=print, indent=0):
 #
 # Walks the tree, using of to gather strings to show the structure.
 #
-def dumpPretty_eoln(of=print, indent=0, lineend=''):
-	of("\n" , end="", sep='')
+def dumpPretty_eoln(of=print, indent=0, lineend='\n',indentChar="\t"):
+	of(lineend , end="", sep='')
 	for i in range(0,indent):
-		of("\t" , end="", sep='')
+		of(indentChar , end="", sep='')
 def dumpPretty_print(*data, of=print):
 	of(*data, end='', sep='')
 def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
@@ -268,6 +267,9 @@ def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
 		#terpri(indent=indent)
 		of(")")
 
+#
+# New helper methof to make experimenting easier
+#
 def createOneValueEnfilade(key, value):
 	b = createNewBottomNode()
 	setData(b, value)
@@ -279,9 +281,12 @@ def createOneValueEnfilade(key, value):
 	setDisp(u, key)
 	return u
 
+#
+#
+#
 def normalizeDisps(node):
-	# adjust child dsps and my disp to sum to the same but with the lowest child disp becomin keyZero
-	# raise NotImplemented("append2.normalizeDisps()")
+	# adjust child dsps and my disp to sum to the same but with the lowest child disp becoming keyZero
+	# FIXME: add early exit on min == keyZero
 	assert(numberOfChildren(node) > 0)
 	childDsps  = [disp(c) for c in children(node)]
 	minChildDsp = keyMin(childDsps) 
@@ -293,7 +298,7 @@ def normalizeDisps(node):
 #
 #
 def levelPush(topNode, newNode):
-	#FIXME do  we need to do an anjustDisps, or leave to the caller
+	#FIXME: do  we need to do a normalizeDisps, or leave to the caller?
 	newTopNode = createNewNode()
 	setDisp(newTopNode, keyZero())
 	setWidth(newTopNode, calculateWidth([topNode,newNode]))
@@ -305,7 +310,7 @@ def levelPush(topNode, newNode):
 #
 def levelPop(topNode):
 	# theOneChildOf will raise if the are 0 or >1 children
-	#FIXME do  we need to do an anjustDisps, or leave to the caller
+	# FIXME: do  we need to do an normalizeDisps, or leave to the caller?
 	newTopNode = theOneChildOf(topNode)
 	setDisp(newTopNode,  keyAdd(disp(newTopNode), disp(topNode)))
 	disown(topNode, newTopNode)
@@ -321,9 +326,10 @@ def levelPop(topNode):
 # Original, approx as laid out in the grant. Appears to be wrong in
 # the cases where the top node has a non-zero disp, bottom node is
 # the top, and when a bottom nodes data is wider than 1.
+# Modified to not refer to a global topnode/fulcrum
 #
-def retrieveGrant(node, key):
-	return recursiveRetrieveGrant(node, key, keyZero())
+def retrieveGrant(topNode, key):
+	return recursiveRetrieveGrant(topNode, key, keyZero())
 def recursiveRetrieveGrant(node, key, cumulativeKey):
 	dprint('* ', node, 'key:' , key, 'ck:',cumulativeKey)
 	# Problem: cumulatoveCey does not have top node disp adjustment
@@ -337,7 +343,6 @@ def recursiveRetrieveGrant(node, key, cumulativeKey):
 			# Problem: we are comparing keys in local space with keys in root space
 			if keyLessThanOrEqual(eachDspStart, key) and keyLessThan(key , eachDspEnd) :
 				return recursiveRetrieveGrant(eachChild, key, keyAdd(cumulativeKey, eachDspStart))
-
 
 #
 # Original-ish, approx as laid out in the grant. 
@@ -385,7 +390,7 @@ def recursiveRetrieve(node, keyInRootSpace, cumulativeKey):
 #
 # Original-ish, approx as laid out in the grant. 
 # Made alternate changes to return multiple results
-# fixed?
+# using a gathering function
 #
 def retrieveAllInto(node, keyInRootSpace, resultSet):
 	def gatherFn(datum, dataNode=None):
@@ -418,6 +423,9 @@ def recursiveRetrieveAllFn(node, keyInRootSpace, cumulativeKey, fn):
 			if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
 				recursiveRetrieveAllFn(eachChild, keyInRootSpace, keyAdd(cumulativeKey, eachDspStart), fn)
 
+#
+# Experiment using nested fns
+#
 def retrieveAllIntoList2(rootNode, keyInRootSpace, resultList):
 	def gatherFn(datum, dataNode=None):
 		resultList.append(datum)
@@ -452,6 +460,9 @@ def retrieveAll2(rootNode, keyInRootSpace, fn):
 #
 def appendGrant(topNode, whereKey, beyond, newDomainValue):
 	# returns a new topnode
+	# original referred to a global top node/fulcrum, but we don't
+	# want globals if we can help it
+	#
 	potentialNewNode = recursiveAppend(topNode, whereKey, beyond, newDomainValue)
 	if potentialNewNode is not None:
 		return levelPush(topNode, potentialNewNode)
@@ -488,9 +499,11 @@ def recursiveAppendGrant(parentNode, whereKey, beyond, newDomainThing):
 
 
 def append(topNode, topWhereKey, beyond, newDomainThing):
-	# reorg append to use private functions
-	# I'm not happpy with the scattershot use of normalizeDisps,
-	# nedd to look at more targeted use.
+	# reorg append to use nested functions to make experiments no mess
+	# with other parts of the file
+	# FIXME: I'm not happy with the scattershot use of normalizeDisps,
+	# need to look at more targeted use.
+	# There are a lot of debug prints here, reorg them.
 	def recursiveAppend(parentNode, whereKey):
 		if DEBUG is not None:
 			myArgs = [parentNode, whereKey]
@@ -546,7 +559,7 @@ def append(topNode, topWhereKey, beyond, newDomainThing):
 	#
 	if topNode is None:
 		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainThing)
-	# returns a new topnode
+	# may return a new topnode
 	potentialNewNode = recursiveAppend(topNode, keySubtract(topWhereKey, disp(topNode)))
 	dprint("* Potential New Node" , potentialNewNode )
 	if potentialNewNode is not None:
@@ -560,6 +573,7 @@ def append(topNode, topWhereKey, beyond, newDomainThing):
 
 ###################################################################
 # Tree cutting
+# Helper functions are my guess at intent.
 #
 # is child set a set? I think it is just a pair
 #
@@ -571,7 +585,7 @@ def rightChild(childSet):
 	return childSet[-1]
 #
 # is cut set a set? I think it is a sorted collection of root space
-# disps. FIXME How many cuts in a set? Can't be 0, maybe minimum of one?
+# disps. FIXME: How many cuts in a set? Can't be 0, maybe minimum of one?
 # test.
 #
 def makeCutSet(*cuts, sortFn=keyLessThan):
@@ -597,7 +611,7 @@ def recursiveCutGrant(cutSet, parentNode):
 		if keyLessThan(disp(eachChild), firstCut(cutSet)) and keyLessThanOrEqual(lastCut(cutSet), keyAdd(disp(eachChild), width(eachChild))) :
 			dontDiveDeeperFlag = False
 			for eachCut in cutSet:
-				# FIXME Is this suppossed to change the cutSet entry in place?
+				# FIXME: Is this supposed to change the cutSet entry in place?
 				raise NotImplemented
 				eachCut = keySubtract(eachCut, disp(eachChild) )
 			recursiveCutGrant(cutSet, eachChild)
@@ -634,7 +648,7 @@ def splitGrant(cut, node):
 	return makeChildSet(leftNode, rightNode)
 
 #######################################################
-# You may not want to recombination is you' 're tree node sharing.
+# You may not want to recombination is you're tree node sharing.
 #
 #
 #
