@@ -293,6 +293,7 @@ def normalizeDisps(node):
 	setDisp(node, keyAdd(disp(node), minChildDsp))
 	for eachChild in children(node):
 		setDisp(eachChild, keySubtract( disp(eachChild) , minChildDsp ))
+	return node
 
 #
 #
@@ -563,12 +564,9 @@ def append(topNode, topWhereKey, beyond, newDomainThing):
 	potentialNewNode = recursiveAppend(topNode, keySubtract(topWhereKey, disp(topNode)))
 	dprint("* Potential New Node" , potentialNewNode )
 	if potentialNewNode is not None:
-		newTop =  levelPush(topNode, potentialNewNode)
+		return normalizeDisps(levelPush(topNode, potentialNewNode))
 	else:
-		newTop = topNode
-	normalizeDisps(newTop)
-	return newTop
-
+		return normalizeDisps(topNode)
 
 
 ###################################################################
