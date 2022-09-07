@@ -1,0 +1,315 @@
+// Author: Alberto González Palomo http://sentido-labs.com
+// ©2016,2017,2019 Alberto González Palomo http://sentido-labs.com
+// Created: 2016-12-07 10:47
+'use strict';
+
+function byId(id) { return document.getElementById(id); }
+function dom(name, attributes, children)
+{
+    var element = document.createElement(name);
+    if (attributes) Object.keys(attributes).forEach(function (name) {
+        element.setAttribute(name, attributes[name]);
+    });
+    if (children) children.forEach(function (child) {
+        if ("string" === typeof child) child = document.createTextNode(child);
+        element.appendChild(child);
+    });
+    return element;
+}
+
+function forEachNode(selector, callback)
+{
+    var nodes = document.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length; ++i) callback(nodes.item(i));
+}
+
+function toggleFold(event) {
+    var element = event.target.nextElementSibling;
+    element.style.display = element.style.display? "": "none";
+}
+function closePopUp(event) {
+    event.stopPropagation();
+    var element = event.target.parentNode;
+    element.parentNode.removeChild(element);
+}
+
+var buttonLabels = {
+    "info": " ℹ ",// Several browsers/OS fail to display 🛈.
+    "-libro-info-card": " ℹ ",// Several browsers/OS fail to display 🛈.
+    "note": "📎",
+    "revisionhistory": "Revision history",
+};
+
+function initFolding()
+{
+    forEachNode("*[data-folded]", function (item) {
+        var folded = false;
+        if (item.hasAttribute("data-folded")) {
+            folded = item.getAttribute("data-folded") === "folded";
+            item.removeAttribute("data-folded");
+        }
+        var label = buttonLabels[item.className] || item.className;
+        if (/[a-z]+-[0-9]+/.test(item.id)) {
+            label += " " + item.id.substr(item.id.lastIndexOf("-") + 1);
+        }
+        var buttonToggle = dom("button", {
+            "class":"-libro-fold-toggle -libro-fold-toggle-" + item.className,
+            "onclick":"toggleFold(event)"
+        }, [label]);
+        item.parentNode.insertBefore(buttonToggle, item);
+        if (folded) buttonToggle.click();
+    });
+    forEachNode(".-libro-noteref", function (item) {
+        item.addEventListener("click", function (event) {
+            forEachNode(event.target.getAttribute("href"), function (note) {
+                note.previousElementSibling.click();
+            });
+        });
+    });
+}
+initFolding();
+
+function checkFragmentIdentifiers()
+{
+    var broken = [];
+    forEachNode('*[href]', function (element) {
+        var href = element.getAttribute("href");
+        if (/^#/.test(href)) {
+            if (!document.getElementById(href.substr(1))) broken.push(element);
+        }
+    });
+    if (broken.length != 0) {
+        alert((broken.length != 1?
+               "There are " + broken.length + " broken references:":
+               "There is one broken reference:") +
+              broken.reduce(function (message, element) {
+                  message += element.getAttribute("href");
+                  element.classList.add('error');
+                  element.appendChild
+                  (document.createTextNode
+                   ("[" + element.getAttribute("href") + "]")
+                  );
+                  while (element) {
+                      if (element.style.display === "none") element.style.display = "";
+                      element = element.parentElement;
+                  }
+                  return message;
+              }, "\n"));
+        broken[0].scrollIntoView();
+    }
+}
+
+function setupAnimationControl()
+{
+    var animated = [];
+    document.body.addEventListener("animationend", function (event) {
+        var node = event.target;
+        if (animated.indexOf(node) === -1) {
+            animated.push(node);
+            node.addEventListener("click", restartAnimation);
+            node.style.cursor = "pointer";
+        }
+    });
+    var waitFrames = 2;
+    function restartAnimation()
+    {
+        animated.forEach(function (node) { node.style.animation = "none"; });
+        requestAnimationFrame(unblockAnimation);
+    }
+    function unblockAnimation()
+    {
+        if (--waitFrames) return requestAnimationFrame(unblockAnimation);
+        waitFrames = 2;
+        animated.forEach(function (node) { node.style.animation = ""; });
+    }
+    animated.forEach(function (node) {
+    });
+}
+
+function fixFirefoxMathML()
+{
+    // Bug 1339784 - XSLT can not produce HTML5 with MathML
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1339784
+    forEachNode("math", function (item) {
+        var math = document.createElementNS('http://www.w3.org/1998/Math/MathML', 'math');
+        for (var i = 0; i < item.attributes.length; ++i) {
+            var attribute = item.attributes.item(i);
+            math.setAttribute(attribute.name, attribute.value);
+        }
+        math.innerHTML = item.innerHTML;
+        item.parentNode.replaceChild(math, item);
+    });
+}
+
+var termdefs = {};
+function addTermDefinition(term, termdef)
+{
+    term = term.trim().replace(/\s+/g, ' ');
+    if (!termdef.id) {
+        var identifier;
+        var counter = 0;
+        do {
+            identifier = 'definition-' + term + (counter? '-' + counter: '');
+            ++counter;
+        } while (document.getElementById(identifier));
+    }
+    var variants = {};
+    // Sloppy way to also link regular plurals:
+    // the good way would be to annotate the plural form too in the content.
+    var plural = term, singular = term;
+    if (term.endsWith('s')) {
+        singular = term.substr(0, term.length-1);
+    } else {
+        if (/[a-zA-Z]$/.test(term)) plural = term + 's';
+    }
+    variants[singular] = true;
+    variants[plural]   = true;
+    Object.keys(variants).forEach((term) => {
+        variants[term[0].toLowerCase() + term.substr(1)] = true;
+        variants[term[0].toUpperCase() + term.substr(1)] = true;
+    });
+    Object.keys(variants).forEach((term) => {
+        (termdefs[term] || (termdefs[term] = [])).push(termdef);
+    });
+}
+forEachNode('.glossentry', function (glossentry) {
+    var glossterm = null;
+    var glossdef  = null;
+    for (var i = 0; i < glossentry.children.length; ++i) {
+        var child = glossentry.children[i];
+        if     (child.classList.contains('glossterm')) glossterm = child;
+        else if (child.classList.contains('glossdef')) glossdef  = child;
+    }
+
+    if (glossterm && glossdef) {
+        addTermDefinition(glossterm.textContent, glossdef);
+    } else {
+        if (!glossterm) {
+            alert('glossentry without glossterm:\n' + glossentry.textContent);
+        }
+        if (!glossdef) {
+            alert('glossentry without glossdef:\n' + glossentry.textContent);
+        }
+    }
+});
+forEachNode('.termdef', function (termdef) {
+    var firstterm = null;
+    var candidates = termdef.getElementsByClassName('firstterm');
+    for (var i = 0; i < candidates.length; ++i) {
+        var parent = candidates[i];
+        while (parent && !parent.classList.contains('termdef')) {
+            parent = parent.parentNode
+        }
+        if (parent === termdef) {
+            firstterm = candidates[i];
+            break;
+        }
+    }
+    if (firstterm) {
+        addTermDefinition(firstterm.textContent, termdef);
+    } else {
+        alert('termdef without firstterm:\n' + termdef.textContent);
+    }
+});
+
+var termRegexp = new RegExp(Object.keys(termdefs).sort((a, b) => {
+    if (a.length !== b.length) return b.length - a.length;
+    else if (a > b) return -1;
+    else if (a < b) return  1;
+    else            return  0;
+}).map((term) => {
+    var re = term.replace(/([.?*+])/g, '\\$1').replace(/\s+/g, '\\s+');
+    if (/^[a-zA-Z]/.test(term)) re = '\\b' + re;
+    if (/[a-zA-Z]$/.test(term)) re = re + '\\b';
+    return re;
+}).join('|'), 'g');
+var termContainers = ['p', 'li', 'code', 'span'];
+function realizeImplicitLinks(node)
+{
+    var i = 0;
+    while (i < node.childNodes.length) {
+        var child = node.childNodes[i];
+        if (Node.TEXT_NODE === child.nodeType) {
+            var replacement = document.createDocumentFragment();
+            var endPrevious = 0;
+            child.nodeValue.replace(termRegexp, function (m, index, text) {
+                if (index > endPrevious) {
+                    replacement.appendChild(document.createTextNode(text.substring(endPrevious, index)));
+                }
+                var term = m.replace(/\s+/g, ' ').trim();
+                if (!termdefs[term]) {
+                    console.error("NO_TERMDEF", term, m, termRegexp, termdefs);
+                }
+                var ref = dom("a", {
+                    "class": "-libro-term-reference",
+                    "href": '#' + termdefs[term][0].id,
+                    "onclick": 'showTermdef("' + term + '", event)'
+                }, [m]);
+                replacement.appendChild(ref);
+                endPrevious = index + m.length;
+            });
+            if (endPrevious < child.nodeValue.length) {
+                replacement.appendChild(document.createTextNode(child.nodeValue.substr(endPrevious)));
+            }
+            var replacementCount = replacement.childNodes.length;
+            child.parentNode.replaceChild(replacement, child);
+            i += replacementCount;
+        } else if (Node.ELEMENT_NODE === child.nodeType) {
+            if (child.localName !== 'a') realizeImplicitLinks(child);
+            i += 1;
+        }
+    }
+}
+
+document.addEventListener('click', (event) => {
+    var container = document.getElementById('-libro-termdef');
+    if (container) container.parentNode.removeChild(container);
+});
+function showTermdef(term, event)
+{
+    console.log("showTermdef(" + term + ")");
+    event.preventDefault();
+    event.stopPropagation();
+    var container = document.getElementById('-libro-termdef');
+    if (container) {
+        container.textContent = '';
+    } else {
+        container = dom("div", {
+            "class": "-libro-termdef note",
+            "style": "position:fixed",
+            "id":    "-libro-termdef"
+        });
+        container.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+    }
+    termdefs[term].forEach((definition, i) => {
+        if (i > 0) container.appendChild(dom("hr"));
+        container.appendChild(definition.cloneNode(true));
+    });
+    var buttonClose
+        = dom("button", {
+            "class":"-libro-fold-toggle",
+            "onclick":"closePopUp(event)"
+        }, ["Close"]);
+    container.appendChild(buttonClose);
+    if (event.clientX < window.innerWidth/2) {
+        container.style.left = event.clientX + 'px';
+        container.style.right = '';
+    } else {
+        container.style.right = (window.innerWidth - event.clientX) + 'px';
+        container.style.left = '';
+    }
+    if (event.clientY < window.innerHeight/2) {
+        container.style.top  = event.clientY + 'px';
+        container.style.bottom = '';
+    } else {
+        container.style.bottom  = (window.innerHeight - event.clientY) + 'px';
+        container.style.top = '';
+    }
+    document.body.appendChild(container);
+    container.style.borderColor = 'red';
+    setTimeout(function () { container.style.borderColor = ''; }, 100);
+}
+
+realizeImplicitLinks(document.body);

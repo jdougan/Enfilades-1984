@@ -51,9 +51,9 @@ Looks to be the same results though.
 * Announcement of HTML formatting: https://sentido-labs.com/en/library/#xanadu-1986
 * [Online HTML formatting of grant proposal](https://sentido-labs.com/en/library/201904240732/Xanadu%20Hypertext%20Documents.html)
     * [Online DocBook source](https://sentido-labs.com/en/library/201904240732/Xanadu%20Hypertext%20Documents.xml)
-    * [Local HTML copy as of 2022-08-01](doc/XHD-20220801/Xanadu%20Hypertext%20Documents.htm)
-    * [Local DocBook source copy as of 2022-08-01](doc/Xanadu%20Hypertext%20Documents-20220801.xml)
-    * [Local MHTML copy as of 2022-08-01](doc/XHD-20220801.mhtml)
+    * [Local HTML copy as of 2022-09-06](doc/XHD-20220906/Xanadu%20Hypertext%20Documents.htm)
+    * [Local DocBook source copy as of 2022-09-06](doc/Xanadu%20Hypertext%20Documents-20220906.xml)
+    * [Local MHTML copy as of 2022-09-06](doc/Xanadu%20Hypertext%20Documents-20220906.mhtml)
   
 ### Terms Explained and Substituted
 This terminology is mostly Xanadu Green/xu88.1 specific.
