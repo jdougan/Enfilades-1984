@@ -9,7 +9,7 @@ Note that the pseudo-code samples there don't actually work.
 Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are apparently wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
 Functions that are suffixed with "Grant" are straight translations of the pseudo-code and are broken.
-Some of the support functions (levelPush, levelPop, etc.) are as as indicated in the pseudo-code and are working so have no "Grant" suffixed version..
+Some of the support functions (levelPush, levelPop, etc.) are as indicated in the pseudo-code and are working so have no "Grant" suffixed version..
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology.
 
@@ -103,7 +103,7 @@ They were kept under trade secret until the open source Udanax release in 1999.
 
 It has been rediscovered independently by Rodney M. Bates (who called them K-Trees or Sequence Trees) and were published in Dr. Dobbs in 1994 and later republished to GitHub.
 
-The Ropes data structure, which is also very similar to the Model-T and K-trees, was invented around the same time as K-trees and published in 1995.
+The Ropes data structure, which is also very similar to the Model-T and K-Trees, was invented around the same time as K-Trees and published in 1995.
 
 ### Sources
 * [K-Trees reference implementations 2022 at GitHub](https://github.com/RodneyBates/ktrees)
