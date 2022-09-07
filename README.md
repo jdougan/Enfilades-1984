@@ -22,10 +22,12 @@ It appears to be intended that the disps of the children of a node should start 
 This normalization can be done by finding the smallest key, subtracting it from each of the child keys, and adding it to the node disp. 
 Every child should then be at the same offset and the interval check in the parent retrieve should work.
 * 2022-09-01 Append isn't recalculating widths on the way back up from the insertion!
-* 2022-08-?? Append isn't adopting the new child nodes on the way back up  from the insertion!
-* 2022-08-?? Append isn't searching the child keys the same way as retrieve.
-Looks to be the same results though.
+* 2022-08-19 Append isn't searching the child keys the same way as retrieve.
+Does however have a similar problem with the top key value disp adjustment.
+* 2022-08-14 Append isn't adopting the new child nodes on the way back up  from the insertion!
+* 2022-08-09 Append is unclear on how single and empty enfilades are represented.
 * 2022-07-?? Retrieve isn't adjusting the key spaces to local before searching children.
+Top key value needs adjustment by disp the same way as occurs in the recursive call.
 
 
 ### Issues
