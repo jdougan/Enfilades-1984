@@ -211,17 +211,11 @@ class BoundsSum(object):
 		return keySubtract(self.kmax, self.kmin)
 	def minandmax(self):
 		return (self.kmin, self.kmax, self.width() )
-def calculateWidthX(*childrens):
-	sum = BoundsSum()
-	for eachChildren in childrens:
-		sum.addChildren(eachChildren)
-	dprint("!!!!!!" , sum.width(), childrens)
-	return sum.width()
 def calculateWidth(*collOfCollOfNodes):
 	sum = BoundsSum()
 	for collOfNodes in collOfCollOfNodes:
 		sum.addChildren(collOfNodes)
-	dprint("!!!!!!width" , sum.width(), collOfCollOfNodes)
+	#dprint("!!!!!!width" , sum.width(), collOfCollOfNodes)
 	return sum.width()
 
 #
@@ -499,7 +493,71 @@ def recursiveAppendGrant(parentNode, whereKey, beyond, newDomainThing):
 			return None
 
 
-def append(topNode, topWhereKey, beyond, newDomainThing):
+def append(topNode, topWhereKey, beyond, newDomainValue):
+	# FIXME: I'm not happy with the scattershot use of normalizeDisps,
+	# need to look at more targeted use.
+	# There are a lot of debug prints here, reorg them.
+	if topNode is None:
+		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainValue)
+	# may return a new topnode
+	potentialNewNode = recursiveAppend(topNode, keySubtract(topWhereKey, disp(topNode)), beyond, newDomainValue)
+	dprint("* Potential New Node" , potentialNewNode )
+	if potentialNewNode is not None:
+		return normalizeDisps(levelPush(topNode, potentialNewNode))
+	else:
+		return normalizeDisps(topNode)
+
+def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
+	if DEBUG is not None:
+		myArgs = [parentNode, whereKey]
+	else:
+		myArgs = None
+	dprint("* StartRA1", myArgs)
+	if (nodeType(parentNode) == NODE_BOTTOM) :
+		if keyEquals(whereKey, keyZero()):
+			dprint("    * bottom node creation", myArgs)
+			newNode = createNewBottomNode()
+			setData(newNode, newDomainThing)
+			setWidth(newNode, naturalWidth(newDomainThing))
+			setDisp(newNode, keyAdd(disp(parentNode), beyond))
+			dprint("* EndRA1", myArgs, newNode)
+			return newNode
+		else:
+			raise KeyError("At Bottom node, key not matching: " + parentNode)
+	else:
+		potentialNewNode = None
+		dprint("    * search", children(parentNode))
+		for eachChild in children(parentNode):
+			if keyLessThanOrEqual(disp(eachChild), whereKey) and keyLessThan(whereKey, keyAdd(disp(eachChild), width(eachChild))):
+				potentialNewNode = recursiveAppend(eachChild, keySubtract(whereKey, disp(eachChild)), beyond, newDomainThing)
+				break
+		dprint("        * hit?", potentialNewNode)
+		if potentialNewNode is not None:
+			if numberOfChildren(parentNode) >= MAX_CHILD_NODES:
+				dprint("    * upper node creation", myArgs)
+				newNode = createNewNode()
+				setDisp(newNode, keyAdd(disp(potentialNewNode),disp(parentNode)))
+				setDisp(potentialNewNode, keyZero())
+				setWidth(newNode, width(potentialNewNode))
+				adopt(newNode, potentialNewNode)
+				normalizeDisps(parentNode)
+				dprint("* EndRA1", myArgs , newNode)
+				return newNode
+			else:
+				dprint("    * upper node adoption", myArgs)
+				setWidth(parentNode, calculateWidth(children(parentNode), [potentialNewNode]))
+				adopt(parentNode, potentialNewNode)
+				normalizeDisps(parentNode)
+				dprint("* EndRA1", myArgs, beyond, newDomainThing)
+				return None
+		else:
+			setWidth(parentNode, calculateWidth(children(parentNode)))
+			normalizeDisps(parentNode)
+			dprint("* EndRA1 no match", myArgs)
+			return None
+
+
+def append1(topNode, topWhereKey, beyond, newDomainThing):
 	# reorg append to use nested functions to make experiments no mess
 	# with other parts of the file
 	# FIXME: I'm not happy with the scattershot use of normalizeDisps,
@@ -523,8 +581,6 @@ def append(topNode, topWhereKey, beyond, newDomainThing):
 			else:
 				raise KeyError("bottom node no-match")
 		else:
-			if nodeType(parentNode) is NODE_BOTTOM:
-				raise KeyError("Found Bottom node, expecting upper node")
 			potentialNewNode = None
 			dprint("    * search", children(parentNode))
 			for eachChild in children(parentNode):
