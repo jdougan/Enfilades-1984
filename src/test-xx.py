@@ -9,7 +9,7 @@ import unittest as u
 #import multi as m
 m =  __import__("enfilade-grant")
 
-SHOULD_DUMP=True
+SHOULD_DUMP=False
 DEBUG=3
 
 def describe(label, item):
@@ -44,8 +44,24 @@ def dumpmd(enfilade, should=None,label=''):
 		m.dump(enfilade, of=mdprint)
 		print(' '.join(dumpdata))
 
+def dumpPretty(enfilade, should=None,label=''):
+	if should is None:
+		s = SHOULD_DUMP
+	else:
+		s = should 
+	if s:
+		dumpdata = ['*']
+		def mdprint(*data):
+			for each in data:
+				dumpdata.append(str(each))
+		m.dumpPretty(enfilade, of=mdprint)
+		print(' '.join(dumpdata))
+
 class AppendsBase(u.TestCase):
 	def retrieveCheck1(testCase,enf,start,end):
+		# Generate a proplist showing the sequence contents of the enfilade
+		# in the specified INCLUSIVE range
+		# FIXME canonicalize the output so it can be compared in t test
 		arr = []
 		for i in range(start,end+1) :
 			try:
@@ -63,36 +79,40 @@ class AppendsBase(u.TestCase):
 		return arr
 	def construct00(testCase):
 		# Build a sigle entry assuming an empty upper node is a valid empty enfilade
+		# 2022-09-13 jdougan Not working at present
 		empty = m.createNewNode()
 		m.setDisp(empty, m.keyZero())
 		m.setWidth(empty, m.keyZero())
 		one = m.append(empty, 1, m.keyZero() , 'A')
 		return one
-	def construct01(testCase):
+	def constructViaAppendFromEmpty(testCase):
 		# Build single entry using the support in append
 		e2 = m.append(None, m.keyZero(), 1, 'A')
 		return e2
-	def construct03(testCase):
-		# Build single entry as a single bottom nodde
+	def constructSingleBottomNode(testCase):
+		# Build single entry as a single bottom node
 		d = 'A'
 		b = m.createNewBottomNode()
 		m.setData(b, d)
 		m.setWidth(b, m.naturalWidth(d))
 		m.setDisp(b,1)
 		return b
-	def construct04(testCase):
-		# Build a single entry with an upper node
-		b = testCase.construct03()
+	def constructSingleUpperAndBottomNode(testCase):
+		# Build a single entry with an upper node with one bottom node
+		b = testCase.constructSingleBottomNode()
 		u = m.createNewNode()
 		m.adopt(u,b)
 		m.setDisp(u, m.keyZero())
 		m.setWidth(u, m.calculateWidth(m.children(u)))
 		return u
 
+class Appends1(AppendsBase):
+	pass
+
 class Appends2(AppendsBase):
 	def constructBase(testCase):
 		# Build single entry using the support in append
-		return testCase.construct01()
+		return testCase.constructViaAppendFromEmpty()
 	def test00(testCase):
 		dprint()
 		dprint('# test00 base construct')
@@ -135,37 +155,31 @@ class Appends2(AppendsBase):
 	#
 	#
 	#
-	def test10(testCase):
+	def test10ValidAppendToSingle(testCase):
 		dprint()
-		dprint('# test10 append 0,2')
-		a = testCase.constructBase()
-		b = None
-		#
-		# FIXME Ths should raiise but it currently doesn't, probably
-		# because of the weirdness around the zero keys
-		#
-		#with testCase.assertRaises(KeyError):
-			#b = m.append(a, m.keyZero(), 2, 'B')
-		testCase.assertIs(b,None)
-		dprint(b)
-		#dumpmd(b)
-	def test11(testCase):
+		dprint('#', (type(testCase).__name__), ' test10ValidAppendToSingle')
+		a1 = testCase.constructBase()
+		dumpmd(a1)
+		b1 = m.append(a1, 1, m.keyZero(), 'B')
+		dumpmd(b1)
+	def test11InvalidAppendToSingle(testCase):
 		dprint()
-		dprint('# test11 append 2,0')
-		a = testCase.constructBase()
-		b = None
+		dprint('#', (type(testCase).__name__), ' test11InvalidAppendToSingle')
+		a2 = testCase.constructBase()
+		dumpmd(a2)
 		with testCase.assertRaises(KeyError):
-			b = m.append(a, 2, m.keyZero(), 'B')
-		dprint(b)
-		#dumpmd(b)
+			b2 = m.append(a2, 2, m.keyZero(), 'B')
+			# should never print
+			dprint("* this should not be reached ", b2)
+			dumpmd(b2)
 
 
 class Appends3(AppendsBase):
 	def constructBase(testCase):
-		return testCase.construct01()
+		return testCase.constructViaAppendFromEmpty()
 	def test03(testCase):
 		dprint()
-		dprint('# Appends3 test03 append overflow')
+		dprint('#', (type(testCase).__name__), ' test03 append overflow')
 		testCase.assertEqual(m.MAX_CHILD_NODES, 4)
 		a = m.append(None, 1, 0, 'A')
 		dumpmd(a)
@@ -200,13 +214,14 @@ class Appends3(AppendsBase):
 			dprint(m.retrieveAllIntoList(e,4,list()))
 		finally:
 			m.DEBUG = None
-
 		#testCase.assertEqual(m.width(e),6)
 
 
+
 class Append4(AppendsBase):
-	def test00node(testCase):
+	def test00LinearAppendToFirst(testCase):
 		dprint()
+		dprint('#', (type(testCase).__name__), ' test00LinearAppendToFirst')
 		things = []
 		indexes = []
 		i = 0
@@ -217,59 +232,50 @@ class Append4(AppendsBase):
 		top = None
 		for each in indexes:
 			top = m.append(top, 1, each, things[each])
-		m.dumpPretty(top)
+		dumpPretty(top)
 		dprint()
 		dprint("    ",testCase.retrieveCheck1(top,0,27))
-	#
+
+
+
+
 class Append5(AppendsBase):
-	def test01node(testCase):
-		testCase.linearAppendToTail(5)
-	#
+	def test00LinearAppendToLast(testCase):
+		dprint('#', (type(testCase).__name__), ' test00LinearAppendToLast')
+		top = testCase.linearAppendToTail(5)
+		dprint()
+		dumpPretty(top)
+		dprint()
+		dprint("    ",testCase.retrieveCheck1(top,0,27))	#
 	def linearAppendToTail(testCase,startIndex):
 		def charForIndex(i):
 			return chr(65 + i - startIndex)
-		m.DEBUG = 1
-		dprint()
+		#dprint()
 		top = None
-		dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
+		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
 		top = m.append(top, startIndex , 0, charForIndex(startIndex))
 		last = startIndex + 0
 		for i in range(startIndex+1,startIndex+26):
-		#for i in range(startIndex+1,startIndex+17):
-			dprint()
-			dprint("APPEND5", last, 1, charForIndex(i))
+			#dprint()
+			#dprint("APPEND5", last, 1, charForIndex(i))
 			top = m.append(top, last , 1, charForIndex(i))
 			last = last + 1
-			dprint()
-			m.dumpPretty(top)
-			dprint()
-			dprint("    ",testCase.retrieveCheck1(top,0,27))
-		# try:
-		# 	print("APPEND5", last, 1, things[5])
-		# 	m.DEBUG = 8
-		# 	top = m.append(top, last , 1, things[5])
-		# finally:
-		# 	pass
-		# dumpmd(top)
-		# dprint("    ",testCase.retrieveCheck1(top,1,26))
-
-
-
-
-
-
+			# dprint()
+			# dumpPretty(top)
+			# dprint()
+			# dprint("    ",testCase.retrieveCheck1(top,0,27))
+		return top
 
 
 
 class Enwidify1(u.TestCase):
 	def test00Single(testCase):
-		bs = m.BoundsSum()
+		bs = m.NodesBoundsSum()
 		ds = [1, 2, 3, 4]
 		for each in ds:
 			bs.addDsp(each)
 			bs.addDsp(each + 1)
 		testCase.assertEqual(bs.width(), 4)
-
 
 
 
