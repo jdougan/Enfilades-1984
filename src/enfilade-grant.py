@@ -1,6 +1,6 @@
 #
 # General Enfilade as done in 1984 grant proposal.  Keys are integers,
-# values are characters. This is an explicit enfilade, where walues
+# values are characters. This is an explicit enfilade, where values
 # are stored in the bottom nodes.
 #
 # The node/crum format used by the grant proposal is a maximally
@@ -20,7 +20,7 @@
 
 # Exception to be raised in a function to
 # mark the function as unimplemented.
-# Can be removed once development is over
+# Can be removed once development is over.
 class NotImplemented(Exception):
 	pass
 
@@ -65,6 +65,31 @@ def keyMin(collKeys, lt=keyLessThan):
 	return mmin
 
 #
+# Used by Enwidify/calculateWidth to keep track of 
+# min/max
+# This may need to be customized for each key type.
+# eg. This code won't work for a 2D key.
+#
+class KeyBoundsSum(object):
+	def __init__(self):
+		self.kmin = None
+		self.kmax = None
+	def addDsp(self,dsp):
+		if self.kmin is None:
+			self.kmin = dsp
+			self.kmax = dsp
+		else:
+			if keyLessThan(dsp, self.kmin):
+				self.kmin = dsp
+			if keyLessThan(self.kmax,dsp):
+				self.kmax = dsp
+	def width(self):
+		return keySubtract(self.kmax, self.kmin)
+	def minandmax(self):
+		return (self.kmin, self.kmax, self.width() )
+
+
+#
 # 
 #
 def naturalWidth(d):
@@ -77,6 +102,7 @@ NODE_BOTTOM = 1
 NODE_UPPER = 2
 
 # For upper crums/nodes. Grant app  specs 8, I'm using 4 because it is easier to test.
+# Should never be less than 3 so it doesn't degenerate into a binary tree.
 MAX_CHILD_NODES = 4
 
 class UninitializedChildren(Exception):
@@ -187,19 +213,7 @@ def theOneChildOf(node):
 #
 # Impllementation of enwidify in XanaSpeak.
 #
-class BoundsSum(object):
-	def __init__(self):
-		self.kmin = None
-		self.kmax = None
-	def addDsp(self,dsp):
-		if self.kmin is None:
-			self.kmin = dsp
-			self.kmax = dsp
-		else:
-			if keyLessThan(dsp, self.kmin):
-				self.kmin = dsp
-			if keyLessThan(self.kmax,dsp):
-				self.kmax = dsp
+class NodesBoundsSum(KeyBoundsSum):
 	def addNode(self,node):
 		dprint(node)
 		self.addDsp(disp(node))
@@ -207,20 +221,16 @@ class BoundsSum(object):
 	def addChildren(self,loaf):
 		for eachNode in loaf:
 			self.addNode(eachNode)
-	def width(self):
-		return keySubtract(self.kmax, self.kmin)
-	def minandmax(self):
-		return (self.kmin, self.kmax, self.width() )
 def calculateWidth(*collOfCollOfNodes):
-	sum = BoundsSum()
+	sum = NodesBoundsSum()
 	for collOfNodes in collOfCollOfNodes:
 		sum.addChildren(collOfNodes)
 	#dprint("!!!!!!width" , sum.width(), collOfCollOfNodes)
 	return sum.width()
 
 #
-# depth counts from the bottom up, This should blow up if there are
-# malformed upper nodes
+# depth counts from the bottom up, Should this blow up if there are
+# malformed upper nodes with no chhildren?  FIXME
 #
 def depth(node):
 	if node.nodeType() == NODE_BOTTOM:
@@ -229,7 +239,7 @@ def depth(node):
 		return ( depth((children(node)[0]) )) + 1
 
 #
-# Walks the tree, using of to gather strings to show the structure.
+# Walks the tree, using function 'of' to gather strings to show the structure.
 #
 def dump(node, of=print, indent=0):
 	if nodeType(node) == NODE_BOTTOM :
@@ -262,9 +272,9 @@ def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
 		of(")")
 
 #
-# New helper methof to make experimenting easier
+# New helper method to make experimenting easier
 #
-def createOneValueEnfilade(key, value):
+def createOneValueEnfiladeUpperBottom(key, value):
 	b = createNewBottomNode()
 	setData(b, value)
 	setWidth(b, naturalWidth(value))
@@ -274,6 +284,14 @@ def createOneValueEnfilade(key, value):
 	setWidth(u, calculateWidth(children(u)))
 	setDisp(u, key)
 	return u
+def createOneValueEnfiladeBottom(key, value):
+	b = createNewBottomNode()
+	setData(b, value)
+	setWidth(b, naturalWidth(value))
+	setDisp(b, key)
+	return b
+def createOneValueEnfilade(key, value):
+	return createOneValueEnfiladeBottom(key, value)
 
 #
 #
@@ -492,7 +510,9 @@ def recursiveAppendGrant(parentNode, whereKey, beyond, newDomainThing):
 		else:
 			return None
 
-
+#
+#
+#
 def append(topNode, topWhereKey, beyond, newDomainValue):
 	# FIXME: I'm not happy with the scattershot use of normalizeDisps,
 	# need to look at more targeted use.
@@ -506,7 +526,7 @@ def append(topNode, topWhereKey, beyond, newDomainValue):
 		return normalizeDisps(levelPush(topNode, potentialNewNode))
 	else:
 		return normalizeDisps(topNode)
-
+#
 def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
 	if DEBUG is not None:
 		myArgs = [parentNode, whereKey]
@@ -523,7 +543,7 @@ def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
 			dprint("* EndRA1", myArgs, newNode)
 			return newNode
 		else:
-			raise KeyError("At Bottom node, key not matching: " + parentNode)
+			raise KeyError("At Bottom node, key not matching: " + str(parentNode))
 	else:
 		potentialNewNode = None
 		dprint("    * search", children(parentNode))
@@ -556,7 +576,9 @@ def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
 			dprint("* EndRA1 no match", myArgs)
 			return None
 
-
+#
+#
+#
 def append1(topNode, topWhereKey, beyond, newDomainThing):
 	# reorg append to use nested functions to make experiments no mess
 	# with other parts of the file
@@ -579,7 +601,7 @@ def append1(topNode, topWhereKey, beyond, newDomainThing):
 				dprint("* EndRA1", myArgs, newNode)
 				return newNode
 			else:
-				raise KeyError("bottom node no-match")
+				raise KeyError("At Bottom node," + str(topWhereKey) + " key not matchingin node " + str(parentNode))
 		else:
 			potentialNewNode = None
 			dprint("    * search", children(parentNode))
