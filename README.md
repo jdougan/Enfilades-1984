@@ -106,12 +106,14 @@ It has been rediscovered independently by Rodney M. Bates (who called them K-Tre
 The Ropes data structure, which is also very similar to the Model-T and K-Trees, was invented around the same time as K-Trees and published in 1995.
 
 ### Sources
-* [K-Trees reference implementations 2022 at GitHub](https://github.com/RodneyBates/ktrees)
-* [Dr.Dobbs article 1994]()
+* [K-Trees reference implementations 2022 at GitHub (MIT license)](https://github.com/RodneyBates/ktrees)
+* [Dr.Dobbs article September 1994](https://xanadu.com.au/mail/udanax/msg00056.html) not freely available.
+* [Another reference to it from the old Sunless-Sea wiki ](https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/KTrees.html)
+* [*Sequence trees: Logarithmic slicing and concatenation of sequences*, Journal of Combinatorial Mathematics and Combinatorial Computing, January 2002](https://www.researchgate.net/publication/266056961_Sequence_trees_Logarithmic_slicing_and_concatenation_of_sequences)
 * Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) ["Ropes: an Alternative to Strings" at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
 * [Wikipedia](https://en.wikipedia.org/wiki/Rope_(data_structure))
 
 ## Implicit 2D
-To be determined.
+The grant application mentions that multi-dimensional data can be stored implicitly in the key structure of the enfilade. However there are only minimal hints on how to do this.
 
 
