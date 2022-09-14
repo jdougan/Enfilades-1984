@@ -262,7 +262,7 @@ def dumpPretty_print(*data, of=print):
 def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
 	if nodeType(node) == NODE_BOTTOM :
 		terpri(indent=indent)
-		of("(BOTTOM", ' ', disp(node), ' ', width(node), ' ', data(node), ")")
+		of("(BOTTOM", ' ', disp(node), ' ', width(node), ' ', repr(data(node)), ")")
 	else:
 		terpri(indent=indent)
 		of("(UPPER", ' ', disp(node), ' ', width(node) )
