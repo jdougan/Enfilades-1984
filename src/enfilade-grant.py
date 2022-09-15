@@ -105,7 +105,7 @@ NODE_UPPER = 2
 # Should never be less than 3 so it doesn't degenerate into a binary tree.
 MAX_CHILD_NODES = 4
 
-class UninitializedChildren(Exception):
+class InvalidChildren(Exception):
 	pass
 
 class Node:
@@ -120,9 +120,14 @@ class Node:
 		node.myDisp = None
 		node.myChildren = None
 	def __str__(node):
+		nc = node.myChildren
+		if nc is not None:
+			np = len(nc)
+		else:
+			np = None
 		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, node.myChildren]) +  ')'
 	def __repr__(node):
-		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, numberOfChildren(node)]) +  ')'
+		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, node.myChildren]) +  ')'
 
 def createNewBottomNode():
 	n = Node()
@@ -153,45 +158,44 @@ def setDisp(node, newDisp):
 #
 def children(node):
 	#
-	# There is a potential problem when a bottom node is the single
+	# There was a problem when a bottom node is the single
 	# and top node, the approach used to find the bottom of the
 	# recursion can end up trying to find the children of a bottom
 	# node (case where the single bottom node is not the data to be
-	# retrieved). As a stopgap until i can discuss this with someone
-	# regarding intentions I'm just going to assume a bottom node
-	# returns an empty child list and log a warning for later.
+	# retrieved). Backstop no longer necessary as I now understand
+	# the issues, now throw an exception to indicate something has gone horribly wrong.
 	#
 	# A loaf in Xanaspeak.is a collection of nodes/crums with some
 	# extra bits for efficient I/O management.
 	if node.myChildren is None:
 		if node.myNodeType == NODE_BOTTOM:
-			dprint('* BACKSTOPPED children on bottom node', level=9)
-		else:
-			dprint('* BACKSTOPPED children on upper node', level=9)
+			raise InvalidChildren("Bottom Node in children()")
 		return ()
 	else:
 		return node.myChildren
 def numberOfChildren(node):
 	if node.myChildren is None:
 		if node.myNodeType == NODE_BOTTOM:
-			dprint('* BACKSTOPPED numberOfChildren on bottom node', level=9)
-		else:
-			dprint('* BACKSTOPPED numberOfChildren on upper node', level=9)
+			raise InvalidChildren("Bottom Node in numberOfChildren()")
 		return 0
 	else:
 		return len(node.myChildren)
 
 #
 # Could be renamed to addChild/removeChild
-# FIXME: what happens if we do  this to a bottom node?
+# FIXME: what happens if we do this to a bottom node?
 #
 def adopt(parentNode, childNode):
+	if parentNode.myNodeType == NODE_BOTTOM:
+		raise InvalidChildren("Bottom Node in adopt()")
 	if parentNode.myChildren is None :
 		parentNode.myChildren = list()
 	parentNode.myChildren.append(childNode)
 def disown(parentNode, childNode):
+	if parentNode.myNodeType == NODE_BOTTOM:
+		raise InvalidChildren("Bottom Node in disown()")
 	if parentNode.myChildren is None :
-		raise UninitializedChildren
+		raise InvalidChildren("Uppper Node in disown()")
 	parentNode.myChildren.remove(childNode)
 #
 # Exception raised by theOneChildOf to indicate when a collection is
@@ -202,10 +206,14 @@ def disown(parentNode, childNode):
 class NotSingular(Exception):
 	pass
 def theOneChildOf(node):
+	if node.myNodeType == NODE_BOTTOM:
+		raise InvalidChildren("Bottom Node in theOneChildOf()")
+	#if parentNode.myChildren is None :
+	#	raise InvalidChildren("Uppper Node in theOneChildOf()")
 	if len(node.myChildren) == 1 :
 		return node.myChildren[0]
 	else:
-		raise NotSingular
+		raise NotSingular("theOneChildOf()")
 
 ####################################################
 # Nothing below this line should be aware
