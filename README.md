@@ -61,7 +61,7 @@ Top key value needs adjustment by disp the same way as occurs in the recursive c
     * [Local HTML copy as of 2022-09-06](doc/XHD-20220906/Xanadu%20Hypertext%20Documents.htm)
     * [Local DocBook source copy as of 2022-09-06](doc/Xanadu%20Hypertext%20Documents-20220906.xml)
     * [Local MHTML copy as of 2022-09-06](doc/Xanadu%20Hypertext%20Documents-20220906.mhtml)
-  
+
 ### Terms Explained and Substituted
 This terminology is mostly Xanadu Green/xu88.1 specific.
 Gold/xu92.1 walked back a lot of the Green terminology as well as generating some of its own.
@@ -97,28 +97,81 @@ A cleaned up Markdown version of the complete glossary in [the original scanned 
     * Sorted collection of keys specifying where the enfilade should split nodes, ordered by .<. / keyLessThan().
     * These get modified in place during the cut, but not resorted.
 
-One of the reasons they used the names wids and dsps (besides for abbreviation) is because they connote a specific set of mathematical properties that the enfilade depends on, and functions and types with these properties may not involve actual widths or displacements.
+One of the reasons they used the names wids and dsps (besides for abbreviation) is because they connote a specific set of mathematical properties that the enfilade depends on, and functions and types with these properties may not involve actual widths or displacements (see section *General Enfilade Theory*).
 They thought introducing new terminology would be clearer as it comes with no expectations.
 
-
-
 ## Model-T
-The claim made by Ted Nelson is that the first enfilade, the Model-T (for Text) was developed in 1972 as part of the Juggler of Text (JoT) development FIXME.
-They were kept under trade secret until the open source Udanax release in 1999.
+The claim made by Ted Nelson is that the first enfilade, the Model-T (for Text) was developed in 1971-72 as part of the *Juggler of Text* (JoT) development.
+They were kept under trade secret along with other enfilade forms and the general theory until the open source (X11 license) *Udanax* release in 1999.
+The *Udanax Green* (aka. *Xanadu 88.1*) code is specifically dependent on enfilades, the later *Udanax Gold*  (aka. *Xanadu 92.1*) is more dependent on an evolution called the *Ent*.
 
-It has been rediscovered independently by Rodney M. Bates (who called them K-Trees or Sequence Trees) and were published in Dr. Dobbs in 1994 and later republished to GitHub.
+It has been rediscovered independently several times, most notably by Rodney M. Bates (who calls them K-Trees or Sequence Trees) and were first published as Modula-3 code in Dr. Dobbs in 1994.
+In 2002 he published a paper outlining them and doing a performance analysis.
+In 2022 he republished to GitHub in both Modula-3 and Ada.
 
-The Ropes data structure, which is also very similar to the Model-T and K-Trees, was invented around the same time as K-Trees and published in 1995.
+The Ropes data structure, which is also very similar to the Model-T and K-Trees, was invented a bit later than K-Trees and published in 1995.
 
 ### Sources
-* [K-Trees reference implementations 2022 at GitHub (MIT license)](https://github.com/RodneyBates/ktrees)
-* [Dr.Dobbs article September 1994](https://xanadu.com.au/mail/udanax/msg00056.html) not freely available.
-* [Another reference to it from the old Sunless-Sea wiki ](https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/KTrees.html)
+* [Udanax web site](http://udanax.xanadu.com/)
+* [*Xanadu® Technologies-- An Introduction*, August 23, 1999](https://xanadu.com/tech/)
+	* Section starting with "**A BRIEF HISTORY OF ENFILADE WORK AT PROJECT XANADU**"
+* [Dr.Dobbs article, September 1994](https://xanadu.com.au/mail/udanax/msg00056.html) not freely available.
 * [*Sequence trees: Logarithmic slicing and concatenation of sequences*, Journal of Combinatorial Mathematics and Combinatorial Computing, January 2002](https://www.researchgate.net/publication/266056961_Sequence_trees_Logarithmic_slicing_and_concatenation_of_sequences)
+* [Another reference to it from the old Sunless-Sea wiki , August 2005](https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/KTrees.html)
+* [K-Trees reference implementations repository, August 2022 at GitHub (MIT license)](https://github.com/RodneyBates/ktrees)
 * Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) ["Ropes: an Alternative to Strings" at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
-* [Wikipedia](https://en.wikipedia.org/wiki/Rope_(data_structure))
+* [Wikipedia on Ropes](https://en.wikipedia.org/wiki/Rope_(data_structure))
 
 ## Indirect 2D
 The grant application mentions that multi-dimensional data can be stored indirectly and implicitly in the key structure of the enfilade. However there are only minimal hints on how to do this.
 
 
+## General Enfilade Theory
+Adapted from the below sources:
+
+(The reader should understand that this brief introduction is not the whole of the theory, and is referred to the originators or to Roger Gregory.)
+
+An enfilade is a tree structure for managing data.
+The initial Model-T enfilade was one-dimensional, referring to a long continuous row of text characters indexed by integers.
+
+General Enfilade Theory was discovered and elucidated within the group during this period (though still not published) by Mark Miller and Stuart Greene (now Stuart Grace).
+They discovered that enfilades had two basic properties which could be independently tailored to create powerful data structures as needed.
+
+The two properties were called WIDativity (upwardly-propagating summation properties, such as the WID field of the Model-T enfilade) and DSPativity, which was also present (though implicit and unsuspected) in the Model-T enfilade.
+DSP, standing for "displacement", applies to properties which propagate cumulatively downward, being imposed from above.
+
+DSPative properties are the dual of WIDative properties.
+
+Example: in computer graphics, a WIDative property (upwardly cumulative) is the bounding box, which grows as the tree included becomes larger.
+A  DSPative property is matrix rotation, such as that of a finger of a hand on an arm, where the movement of a single bone of a single digit is a matrix product of all the motions farther up the tree.
+
+What was the DSPative property in the Model-T?
+It was the sequencing of the pointers, which sequenced the text below in a tree of downward imposition.
+
+Both WIDative and DSPative properties must be associative, i.e. for such a property *p*
+
+A *p* (B *p* C) = (A *p* B) *p* C
+
+because there is no telling how the next version will be edited.
+However, WIDative properties must be associative horizontally (like the sum of the WIDs in the Model-T enfilade) and DSPative properties must be associative vertically (like the positions of the crums/nodes in the Model-T enfilade).
+
+Enfilades can be generalized to any "spaces" characterized by these mathematical relationships, many of which are not literal geometric spaces.
+
+General Enfilade Theory permits the creation of custom enfilades by the suitable selection and design of WIDative and DSPative properties.
+
+
+###  Sources
+* [*Xanadu® Technologies-- An Introduction*, August 23, 1999](https://xanadu.com/tech/)
+	* Section starting with "**A BRIEF HISTORY OF ENFILADE WORK AT PROJECT XANADU**"
+* [*EnfTheory-D10: Enfiladics*, Nelson and Miller](https://xanadu.com/EnfTheory-D10)
+* Sunless-Sea Wiki: General Enfilade Theory
+	* http://web.archive.org/web/20050112131720/http://sunless-sea.net/wiki/General%20Enfilade%20Theory
+	* https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/General%20Enfilade%20Theory.html
+* Sunless-Sea Wiki: Enfilade Theory
+	* https://web.archive.org/web/20050112131720/http://sunless-sea.net/wiki/General%20Enfilade%20Theory
+	* https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/EnfiladeTheory.html
+* [Wikipedia on Enfilade](https://en.wikipedia.org/wiki/Enfilade_(Xanadu))
+* [*General Enfilade Theory* at C2 wiki](http://wiki.c2.com/?GeneralEnfiladeTheory)
+* Chris White's github repo for his website at `cxw42.github.io`, [Xanadu Archaeology section](https://github.com/cxw42/cxw42.github.io/tree/master/htdocs/Xanadu-archaeology)
+	* [Xanadu text articles extracted from Sunless-sea wiki data](https://github.com/cxw42/cxw42.github.io/tree/master/htdocs/Xanadu-archaeology/articles/text)
+* [Steve Witham writes about enfilades he has designed](https://www.aus.xanadu.com/mail/udanax/msg00050.html)
