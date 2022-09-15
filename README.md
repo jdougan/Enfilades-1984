@@ -1,21 +1,24 @@
 # Enfilades-1984
 Several Python 3 implementations of Enfilades.
-Currently there is just one implementation, but the plan is to do more later (Model-T, Implicit Data, etc.)
+Currently there is just one implementation, but the plan is to do more later (Model-T, Indirect Data, etc.)
 As the source and documentation I've generated this from is under MIT license, this is also.
 
 ## Grant Application
-`enfilade-grant.py` is based on the description in the [Xanadu Operating Company's 1984 grant application to the System Development Foundation (SDF)](doc/XanaduSDF1984OCR.pdf).
+`enfilade-grant.py` is based on the base description in the [Xanadu Operating Company's 1984 grant application to the System Development Foundation (SDF)](doc/XanaduSDF1984OCR.pdf).
 Note that the pseudo-code samples there don't actually work.
 Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are apparently wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
 Functions that are suffixed with "Grant" are straight translations of the pseudo-code and are broken.
-Some of the support functions (levelPush, levelPop, etc.) are as indicated in the pseudo-code and are working so have no "Grant" suffixed version..
+Some of the support functions (levelPush, levelPop, etc.) seem to be as indicated in the pseudo-code and are working so have no "Grant" suffixed version.
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology.
 
 The tests are in `grant-test.py` and currently do not test cuts, recombines or rearranges.
+`test-xx.py` is a staging area for tests that are incomplete or experiments used to try to understand the descriptions.
+They may be in a failing or erroring state.
 
 #### Notes
+* 2022-09-14 Tests have been updated. I'm becoming increasingly certain that levelPush need to have a normalization step.
 * 2022-09-04 Finally have retrieve and append working acceptably well. Need to fix tests next.
 * 2022-09-03 I understand now! 
 It appears to be intended that the disps of the children of a node should start from keyZero, so the search in the parent node works correctly. 
@@ -37,14 +40,16 @@ Top key value needs adjustment by disp the same way as occurs in the recursive c
     * Also influenced  by the disps and widths not being normalized.
     * It wasn't mentioned anywhere that keyZero normalization would be expected.
 * Unclear on the possibility of negative key values.
-    * It should work now, needs to be tested.
+    * It should work now, ~~needs to be tested~~.
 * Unclear what empty and single element enfilades should be like.
     * After experimentation decided that empty is Nil/None and single is a upper and bottom normalized.
-    * Potentially single bottom node could work with some small changes.
+    * Single bottom nodes now work ~~with some small changes~~.
+    * What happens withs an empty Upper Node?
+        * Empty enfilade? Error? Remove it?
 * There are a couple of possible ways to reconstruct retrieve(), not sure what was intended.
-* Node splitting in append is getting disps wrong in the new node.
-    * Lots of issues with append.
-* Appending data elements with a naturalWidth greater than 1 gives unintuitive results on retrieval.
+* Node splitting in append was getting disps wrong in the new node.
+    * ~~Lots of issues with append~~.
+* Appending data elements with a naturalWidth greater than 1 gives unintuitive results on retrieval. Keeping grant app implied semantics for now.
 
 ### Sources 
 * Announcement of finding the grant app front matter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
@@ -113,7 +118,7 @@ The Ropes data structure, which is also very similar to the Model-T and K-Trees,
 * Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) ["Ropes: an Alternative to Strings" at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
 * [Wikipedia](https://en.wikipedia.org/wiki/Rope_(data_structure))
 
-## Implicit 2D
-The grant application mentions that multi-dimensional data can be stored implicitly in the key structure of the enfilade. However there are only minimal hints on how to do this.
+## Indirect 2D
+The grant application mentions that multi-dimensional data can be stored indirectly and implicitly in the key structure of the enfilade. However there are only minimal hints on how to do this.
 
 
