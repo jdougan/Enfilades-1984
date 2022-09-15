@@ -3,7 +3,7 @@
 #
 # Note that a lot of the test debug output is Markdown formatted
 #
-#
+# This file is indented using tabs
 #
 import unittest as u
 #import multi as m
@@ -53,6 +53,19 @@ def dumpPretty(enfilade, should=None,label=''):
 	if s:
 		m.dumpPretty(enfilade)
 
+def dumpmd(enfilade, should=None,label=''):
+	if should is None:
+		s = SHOULD_DUMP
+	else:
+		s = should
+	if s:
+		dumpdata = ['*']
+		def mdprint(*data):
+			for each in data:
+				dumpdata.append(str(each))
+		m.dump(enfilade, of=mdprint)
+		print(' '.join(dumpdata))
+
 
 
 ##########################################################################
@@ -73,7 +86,7 @@ class GrantTestsCase(u.TestCase):
 			try:
 				each = m.retrieveAllIntoList(enf,i,list())
 			except Exception as ex:
-				each = 'ERROR' + ex
+				each = 'ERROR' + str(type(ex))
 			arr.append(i)
 			arr.append(each)
 		return arr
@@ -81,7 +94,11 @@ class GrantTestsCase(u.TestCase):
 	def retrieveCheck2(testCase,enf,start,end):
 		arr = []
 		for i in range(start,end+1) :
-			each = m.retrieve(enf,i)
+			try:
+				each = m.retrieve(enf,i)
+			except Exception as ex:
+				each = 'ERROR' + str(type(ex))
+			arr.append(i)
 			arr.append(each)
 		return arr
 
@@ -203,7 +220,42 @@ def createTestEnfilade02():
 #
 #
 class RetrievalsSingle(GrantTestsCase):
-	pass
+	def test01BottomNodeRetrieve(testCase):
+		testCase.dprintTestHeader('test01BottomNodeRetrieve')
+		top = m.createNewBottomNode()
+		m.setData(top,'B')
+		m.setWidth(top,m.naturalWidth('B'))
+		m.setDisp(top,7)
+		data = testCase.retrieveCheck2(top,5,9)
+		should = [5, None, 6, None, 7, 'B', 8, None, 9, None]
+		testCase.assertEqual(data, should)
+	def test02Retrieves(testCase):
+		testCase.dprintTestHeader('test02Retrieves')
+		top = createTestEnfilade01()
+		data = testCase.retrieveCheck2(top,0,10)
+		should = [0, None, 1, None, 2, None, 3, None, 4, None, 5, 'A', 6, None, 7, 'B', 8, None, 9, None, 10, None]
+		testCase.assertEqual(data, should)
+	def test03Retrieves(testCase):
+		testCase.dprintTestHeader('test03Retrieves')
+		top = createTestEnfilade02()
+		data = testCase.retrieveCheck2(top,0,30)
+		should = [0, None, 1, None, 2, None, 3, None, 4, None, 5, None, 6, None, 7, None, 8, None, 9, None, 10, None, 11, None, 12, None, 13, None, 14, None, 15, None, 16, None, 17, None, 18, None, 19, None, 20, 'A', 21, None, 22, 'B', 23, None, 24, None, 25, None, 26, None, 27, None, 28, None, 29, None, 30, None]
+		testCase.assertEqual(data, should)
+	def test04RetrievesPushed(testCase):
+		testCase.dprintTestHeader('test04RetrievesDisp')
+		top = createTestEnfilade01()
+		a = createTestEnfilade02()
+		top= m.normalizeDisps(m.levelPush(top, a))
+		data = testCase.retrieveCheck2(top,0,30)
+		should = [0, None, 1, None, 2, None, 3, None, 4, None, 5, 'A', 6, None, 7, 'B', 8, None, 9, None, 10, None, 11, None, 12, None, 13, None, 14, None, 15, None, 16, None, 17, None, 18, None, 19, None, 20, 'A', 21, None, 22, 'B', 23, None, 24, None, 25, None, 26, None, 27, None, 28, None, 29, None, 30, None]
+		testCase.assertEqual(data, should)
+	def test05RetrievesDisped(testCase):
+		testCase.dprintTestHeader('test05RetrievesDisped')
+		top = createTestEnfilade02()
+		m.setDisp(top, m.keySubtract(m.disp(top), 20))
+		data = testCase.retrieveCheck2(top,-1,10)
+		should = [-1, None, 0, 'A', 1, None, 2, 'B', 3, None, 4, None, 5, None, 6, None, 7, None, 8, None, 9, None, 10, None]
+		testCase.assertEqual(data, should)
 
 class RetrievalsMulti(GrantTestsCase):
 	def test01BottomNodeRetrieve(testCase):
@@ -212,9 +264,7 @@ class RetrievalsMulti(GrantTestsCase):
 		m.setData(top,'B')
 		m.setWidth(top,m.naturalWidth('B'))
 		m.setDisp(top,7)
-		dump(top)
 		data = testCase.retrieveCheck1(top,5,9)
-		print(data)
 		should = [5, [], 6, [], 7, ['B'], 8, [], 9, []]
 		testCase.assertEqual(data, should)
 	def test02Retrieves(testCase):
@@ -324,6 +374,27 @@ class ZzAppend2(AppendsBase):
 			# dprint()
 			# dprint("    ",testCase.retrieveCheck1(top,0,27))
 		return top
+
+class Append3(AppendsBase):
+	def constructBase(testCase):
+		# Build single entry using the support in append
+		return testCase.constructViaAppendFromEmpty()
+	def test10ValidAppendToSingle(testCase):
+		testCase.dprintTestHeader('test10ValidAppendToSingle')
+		a1 = testCase.constructBase()
+		dump(a1)
+		b1 = m.append(a1, 1, m.keyZero(), 'B')
+		dump(b1)
+	def test11InvalidAppendToSingle(testCase):
+		testCase.dprintTestHeader('test11InvalidAppendToSingle')
+		a2 = testCase.constructBase()
+		dump(a2)
+		with testCase.assertRaises(KeyError):
+			b2 = m.append(a2, 2, m.keyZero(), 'B')
+			# should never print
+			dprint("* this should not be reached ", b2)
+			dump(b2)
+
 
 
 if __name__ == '__main__':

@@ -1,16 +1,17 @@
 #
 # tests for the enfilade from the grant and the corrected verions
-#
+# This is a scratch areea to develop new twests
 # Note that a lot of the test debug output is Markdown formatted
 #
-#
+# This file uses tabs to indent
 #
 import unittest as u
 #import multi as m
 m =  __import__("enfilade-grant")
 
-SHOULD_DUMP=False
-DEBUG=3
+SHOULD_DUMP=True
+DEBUG=2
+DEFAULT_DPRINT_LEVEL = 2
 
 def describe(label, item):
 	try:
@@ -19,19 +20,19 @@ def describe(label, item):
 		lenInt = -1
 	print(label, type(item), lenInt, item)
 
-def dprint(*data, level=2, of=print):
+def dprint(*data, level=DEFAULT_DPRINT_LEVEL):
 	if (DEBUG is not None) and (DEBUG >= level):
-		of(*data)
+		print(*data)
 
 def dumptxt(enfilade, should=None):
 	if should is None:
 		s = SHOULD_DUMP
-	else:
+	else:  
 		s = should
 	if s :
 		m.dump(enfilade, of=print)
 
-def dumpmd(enfilade, should=None,label=''):
+def dump(enfilade, should=None,label=''):
 	if should is None:
 		s = SHOULD_DUMP
 	else:
@@ -48,38 +49,61 @@ def dumpPretty(enfilade, should=None,label=''):
 	if should is None:
 		s = SHOULD_DUMP
 	else:
-		s = should 
+		s = should
+	if s:
+		m.dumpPretty(enfilade)
+
+def dumpmd(enfilade, should=None,label=''):
+	if should is None:
+		s = SHOULD_DUMP
+	else:
+		s = should
 	if s:
 		dumpdata = ['*']
 		def mdprint(*data):
 			for each in data:
 				dumpdata.append(str(each))
-		m.dumpPretty(enfilade, of=mdprint)
+		m.dump(enfilade, of=mdprint)
 		print(' '.join(dumpdata))
 
-class AppendsBase(u.TestCase):
+
+class GrantTestsCase(u.TestCase):
+	#
+	def dprintTestHeader(testCase, methodStr):
+		dprint()
+		dprint('#', (type(testCase).__name__), methodStr)
+	#
 	def retrieveCheck1(testCase,enf,start,end):
-		# Generate a proplist showing the sequence contents of the enfilade
+		# Generate a ordered proplist showing the sequence contents of the enfilade
 		# in the specified INCLUSIVE range
-		# FIXME canonicalize the output so it can be compared in t test
+		# FIXME canonicalize the domain output so it can be compared in a test
 		arr = []
 		for i in range(start,end+1) :
 			try:
 				each = m.retrieveAllIntoList(enf,i,list())
 			except Exception as ex:
-				each = 'ERROR' + ex
+				each = 'ERROR' + str(type(ex))
 			arr.append(i)
 			arr.append(each)
 		return arr
+	#
 	def retrieveCheck2(testCase,enf,start,end):
 		arr = []
 		for i in range(start,end+1) :
-			each = m.retrieve(enf,i)
+			try:
+				each = m.retrieve(enf,i)
+			except Exception as ex:
+				each = 'ERROR' + str(type(ex))
+			arr.append(i)
 			arr.append(each)
 		return arr
+
+
+class AppendsBase(GrantTestsCase):
 	def construct00(testCase):
 		# Build a sigle entry assuming an empty upper node is a valid empty enfilade
-		# 2022-09-13 jdougan Not working at present
+		# 2022-09-13 jdougan Not working at present as we are
+		# assming an empty Upper Node is an error
 		empty = m.createNewNode()
 		m.setDisp(empty, m.keyZero())
 		m.setWidth(empty, m.keyZero())
@@ -106,8 +130,6 @@ class AppendsBase(u.TestCase):
 		m.setWidth(u, m.calculateWidth(m.children(u)))
 		return u
 
-class Appends1(AppendsBase):
-	pass
 
 class Appends2(AppendsBase):
 	def constructBase(testCase):
@@ -152,26 +174,6 @@ class Appends2(AppendsBase):
 		dprint(e)
 		dumpmd(e)
 		testCase.assertEqual(m.width(e),6)
-	#
-	#
-	#
-	def test10ValidAppendToSingle(testCase):
-		dprint()
-		dprint('#', (type(testCase).__name__), ' test10ValidAppendToSingle')
-		a1 = testCase.constructBase()
-		dumpmd(a1)
-		b1 = m.append(a1, 1, m.keyZero(), 'B')
-		dumpmd(b1)
-	def test11InvalidAppendToSingle(testCase):
-		dprint()
-		dprint('#', (type(testCase).__name__), ' test11InvalidAppendToSingle')
-		a2 = testCase.constructBase()
-		dumpmd(a2)
-		with testCase.assertRaises(KeyError):
-			b2 = m.append(a2, 2, m.keyZero(), 'B')
-			# should never print
-			dprint("* this should not be reached ", b2)
-			dumpmd(b2)
 
 
 class Appends3(AppendsBase):
@@ -215,68 +217,6 @@ class Appends3(AppendsBase):
 		finally:
 			m.DEBUG = None
 		#testCase.assertEqual(m.width(e),6)
-
-
-
-class Append4(AppendsBase):
-	def test00LinearAppendToFirst(testCase):
-		dprint()
-		dprint('#', (type(testCase).__name__), ' test00LinearAppendToFirst')
-		things = []
-		indexes = []
-		i = 0
-		for each in range(65,65+26):
-			things.append(chr(each))
-			indexes.append(i)
-			i = i + 1
-		top = None
-		for each in indexes:
-			top = m.append(top, 1, each, things[each])
-		dumpPretty(top)
-		dprint()
-		dprint("    ",testCase.retrieveCheck1(top,0,27))
-
-
-
-
-class Append5(AppendsBase):
-	def test00LinearAppendToLast(testCase):
-		dprint('#', (type(testCase).__name__), ' test00LinearAppendToLast')
-		top = testCase.linearAppendToTail(5)
-		dprint()
-		dumpPretty(top)
-		dprint()
-		dprint("    ",testCase.retrieveCheck1(top,0,27))	#
-	def linearAppendToTail(testCase,startIndex):
-		def charForIndex(i):
-			return chr(65 + i - startIndex)
-		#dprint()
-		top = None
-		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
-		top = m.append(top, startIndex , 0, charForIndex(startIndex))
-		last = startIndex + 0
-		for i in range(startIndex+1,startIndex+26):
-			#dprint()
-			#dprint("APPEND5", last, 1, charForIndex(i))
-			top = m.append(top, last , 1, charForIndex(i))
-			last = last + 1
-			# dprint()
-			# dumpPretty(top)
-			# dprint()
-			# dprint("    ",testCase.retrieveCheck1(top,0,27))
-		return top
-
-
-
-class Enwidify1(u.TestCase):
-	def test00Single(testCase):
-		bs = m.NodesBoundsSum()
-		ds = [1, 2, 3, 4]
-		for each in ds:
-			bs.addDsp(each)
-			bs.addDsp(each + 1)
-		testCase.assertEqual(bs.width(), 4)
-
 
 
 if __name__ == '__main__':
