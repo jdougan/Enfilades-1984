@@ -117,9 +117,9 @@ The Ropes data structure, which is also very similar to the Model-T and K-Trees,
 	* Section starting with "**A BRIEF HISTORY OF ENFILADE WORK AT PROJECT XANADU**"
 * [Dr.Dobbs article, September 1994](https://xanadu.com.au/mail/udanax/msg00056.html) not freely available.
 * [*Sequence trees: Logarithmic slicing and concatenation of sequences*, Journal of Combinatorial Mathematics and Combinatorial Computing, January 2002](https://www.researchgate.net/publication/266056961_Sequence_trees_Logarithmic_slicing_and_concatenation_of_sequences)
-* [Another reference to it from the old Sunless-Sea wiki , August 2005](https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/KTrees.html)
+* [Another reference to K-Trees from the old Sunless-Sea wiki , August 2005](https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/KTrees.html)
 * [K-Trees reference implementations repository, August 2022 at GitHub (MIT license)](https://github.com/RodneyBates/ktrees)
-* Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) ["Ropes: an Alternative to Strings" at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
+* Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) [*Ropes: an Alternative to Strings* at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
 * [Wikipedia on Ropes](https://en.wikipedia.org/wiki/Rope_(data_structure))
 
 ## Indirect 2D
@@ -127,14 +127,12 @@ The grant application mentions that multi-dimensional data can be stored indirec
 
 
 ## General Enfilade Theory
-Adapted from the below sources:
-
-(The reader should understand that this brief introduction is not the whole of the theory, and is referred to the originators or to Roger Gregory.)
+(The reader should understand that this brief introduction is not the whole of the theory, and is referred to the below listed sources, the originators, or Roger Gregory.)
 
 An enfilade is a tree structure for managing data.
 The initial Model-T enfilade was one-dimensional, referring to a long continuous row of text characters indexed by integers.
 
-General Enfilade Theory was discovered and elucidated within the group during this period (though still not published) by Mark Miller and Stuart Greene (now Stuart Grace).
+General Enfilade Theory, after some conjectures by William Barus, was discovered and elucidated within the Xanadu group around 1979 (though still not published) by Mark Miller and Stuart Greene (now Stuart Grace).
 They discovered that enfilades had two basic properties which could be independently tailored to create powerful data structures as needed.
 
 The two properties were called WIDativity (upwardly-propagating summation properties, such as the WID field of the Model-T enfilade) and DSPativity, which was also present (though implicit and unsuspected) in the Model-T enfilade.
@@ -155,6 +153,9 @@ A *p* (B *p* C) = (A *p* B) *p* C
 because there is no telling how the next version will be edited.
 However, WIDative properties must be associative horizontally (like the sum of the WIDs in the Model-T enfilade) and DSPative properties must be associative vertically (like the positions of the crums/nodes in the Model-T enfilade).
 
+The next big insight is that the WID and DSP functions are reversible.  This means that you can rebalance the tree as you like without affecting its meaning.
+The 1979 design used this freedom for b-tree-like balancing, keeping the worst case log-like.
+
 Enfilades can be generalized to any "spaces" characterized by these mathematical relationships, many of which are not literal geometric spaces.
 
 General Enfilade Theory permits the creation of custom enfilades by the suitable selection and design of WIDative and DSPative properties.
@@ -164,10 +165,10 @@ General Enfilade Theory permits the creation of custom enfilades by the suitable
 * [*Xanadu® Technologies-- An Introduction*, August 23, 1999](https://xanadu.com/tech/)
 	* Section starting with "**A BRIEF HISTORY OF ENFILADE WORK AT PROJECT XANADU**"
 * [*EnfTheory-D10: Enfiladics*, Nelson and Miller](https://xanadu.com/EnfTheory-D10)
-* Sunless-Sea Wiki: General Enfilade Theory
+* Sunless-Sea Wiki: *General Enfilade Theory*
 	* http://web.archive.org/web/20050112131720/http://sunless-sea.net/wiki/General%20Enfilade%20Theory
 	* https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/General%20Enfilade%20Theory.html
-* Sunless-Sea Wiki: Enfilade Theory
+* Sunless-Sea Wiki: *Enfilade Theory*
 	* https://web.archive.org/web/20050112131720/http://sunless-sea.net/wiki/General%20Enfilade%20Theory
 	* https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/EnfiladeTheory.html
 * [Wikipedia on Enfilade](https://en.wikipedia.org/wiki/Enfilade_(Xanadu))
