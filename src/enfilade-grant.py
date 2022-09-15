@@ -377,18 +377,20 @@ def recursiveRetrieveAllGrant(node, key, cumulativeKey, resultSet):
 			# Problem: we are comparing keys in local space with keys in root space
 			if keyLessThanOrEqual(eachDspStart, key) and keyLessThan(key , eachDspEnd):
 				recursiveRetrieveAllGrant(eachChild, key, keyAdd(cumulativeKey, eachDspStart), resultSet)
+
 #
 # Partially fixed.
-# Only returns first hit.
-# Probably could be cleaned up some.
+# Only returns first solid hit.
+# Probably could be cleaned up some more.
 # unintuitive in cases where width of bottom node data width is > 1.
 #
 def retrieve(topNode, key):
 	return recursiveRetrieve(topNode, key, keyAdd(keyZero(),disp(topNode)))
 def recursiveRetrieve(node, keyInRootSpace, cumulativeKey):
 	dprint('* Node start:' , node, 'keyInRoot:' , keyInRootSpace, 'ckInRoot:', cumulativeKey)
-	if keyEquals( cumulativeKey, keyInRootSpace ):
-		return data(node)
+	if (nodeType(node) == NODE_BOTTOM):
+		if keyEquals( cumulativeKey, keyInRootSpace ):
+			return data(node)
 	else:
 		# translate the key into local key space
 		keyInLocalSpace = keySubtract(keyInRootSpace, cumulativeKey)
