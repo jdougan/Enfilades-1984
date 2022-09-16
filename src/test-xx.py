@@ -20,9 +20,9 @@ def describe(label, item):
 		lenInt = -1
 	print(label, type(item), lenInt, item)
 
-def dprint(*data, level=DEFAULT_DPRINT_LEVEL):
+def dprint(*data, level=DEFAULT_DPRINT_LEVEL, of=print):
 	if (DEBUG is not None) and (DEBUG >= level):
-		print(*data)
+		of(*data)
 
 def dumptxt(enfilade, should=None):
 	if should is None:
