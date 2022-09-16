@@ -127,6 +127,8 @@ The grant application mentions that multi-dimensional data can be stored indirec
 
 
 ## General Enfilade Theory
+*this is kitbashed together from the below sources and my own understanding. --jrd*
+
 (The reader should understand that this brief introduction is not the whole of the theory, and is referred to the below listed sources, the originators, or Roger Gregory.)
 
 An enfilade is a tree structure for managing data.
@@ -169,7 +171,7 @@ General Enfilade Theory permits the creation of custom enfilades by the suitable
 	* http://web.archive.org/web/20050112131720/http://sunless-sea.net/wiki/General%20Enfilade%20Theory
 	* https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/General%20Enfilade%20Theory.html
 * Sunless-Sea Wiki: *Enfilade Theory*
-	* https://web.archive.org/web/20050112131720/http://sunless-sea.net/wiki/General%20Enfilade%20Theory
+	* https://web.archive.org/web/20041217112415/http://www.sunless-sea.net/wiki/EnfiladeTheory
 	* https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/EnfiladeTheory.html
 * [Wikipedia on Enfilade](https://en.wikipedia.org/wiki/Enfilade_(Xanadu))
 * [*General Enfilade Theory* at C2 wiki](http://wiki.c2.com/?GeneralEnfiladeTheory)
