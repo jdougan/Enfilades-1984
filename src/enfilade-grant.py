@@ -1,10 +1,11 @@
 #
 # General Enfilade as done in 1984 grant proposal.  Keys are integers,
-# values are characters. This is an explicit enfilade, where values
-# are stored in the bottom nodes.
+# values are characters strings. This is an explicit enfilade, where values
+# are stored in the bottom nodes. This is NOT a Model-T,
+# in a Model-T the disps are implicit in the sequencing.
 #
 # The node/crum format used by the grant proposal is a maximally
-# expanded one, with one bottom node/crum per data element. t This is
+# expanded one, with one bottom node/crum per data element. This is
 # kind of wasteful, but it makes it easier to do bookkeeping and you
 # don't have to split bottom crums/nodes.
 #
@@ -27,10 +28,14 @@ class NotImplemented(Exception):
 # DEBUG is None means no debug output at all, Otherwise it is an
 # integer with higher numbers revealing more debug data.
 DEBUG = None
+DEFAULT_DPRINT_LEVEL = 2
 #
-def dprint(*data, level=2):
+def dprint_normal(*data, level=DEFAULT_DPRINT_LEVEL, of=print):
 	if (DEBUG is not None) and (DEBUG >= level):
-		print(*data)
+		of(*data)
+def dprint_off(*data, **datak):
+	pass
+dprint = dprint_normal
 
 #######################################################
 # keyspace/indexspace operations
@@ -53,7 +58,10 @@ def keyLessThan(a,b):
 	return a < b
 def keyLessThanOrEqual(a,b):
 	return a <= b
-# not defined in the grant app, but it makes life easier for normalization
+# not defined in the grant app, but it makes life easier for
+# normalization
+# This may need to be customized for each key type.
+# eg. This code won't work for a 2D key.
 def keyMin(collKeys, lt=keyLessThan):
 	assert(len(collKeys) > 0)
 	if len(collKeys) == 1:
@@ -90,7 +98,7 @@ class KeyBoundsSum(object):
 
 
 #
-# 
+# Assumes d is a string
 #
 def naturalWidth(d):
 	return len(d)
@@ -219,15 +227,15 @@ def theOneChildOf(node):
 # Nothing below this line should be aware
 # of the internal implementation structure of a Node,
 #
-# Impllementation of enwidify in XanaSpeak.
+# Implementation of Enwidify in XanaSpeak.
 #
 class NodesBoundsSum(KeyBoundsSum):
 	def addNode(self,node):
 		dprint(node)
 		self.addDsp(disp(node))
 		self.addDsp(keyAdd(disp(node), width(node)))
-	def addChildren(self,loaf):
-		for eachNode in loaf:
+	def addChildren(self,collOfNodes):
+		for eachNode in collOfNodes:
 			self.addNode(eachNode)
 def calculateWidth(*collOfCollOfNodes):
 	sum = NodesBoundsSum()
@@ -238,11 +246,14 @@ def calculateWidth(*collOfCollOfNodes):
 
 #
 # depth counts from the bottom up, Should this blow up if there are
-# malformed upper nodes with no chhildren?  FIXME
+# malformed upper nodes with no children?  FIXME
+# count from one so an empty tree is zero depth
 #
 def depth(node):
-	if node.nodeType() == NODE_BOTTOM:
+	if node is None:
 		return 0
+	if nodeType(node) == NODE_BOTTOM:
+		return 1
 	else:
 		return ( depth((children(node)[0]) )) + 1
 

@@ -303,7 +303,35 @@ def createTestEnfilade02():
 	top = m.normalizeDisps(top)
 	return top
 
-# 
+#
+#
+#
+#
+#
+class DepthTests(GrantTestsCase):
+	# I have no idea how this counts in xu88
+	def test00EmptyTree(testCase):
+		b = None
+		testCase.assertEqual(m.depth(b),0)
+	def test01BottomNode(testCase):
+		b = m.createOneValueEnfiladeBottom(10,'A')
+		testCase.assertEqual(m.depth(b),1)
+	def test02UpperBottomNode(testCase):
+		b = m.createOneValueEnfiladeUpperBottom(10,'A')
+		testCase.assertEqual(m.depth(b),2)
+	def test03UpperBottomNode(testCase):
+		a = m.createOneValueEnfiladeBottom(10,'A')
+		b = m.createOneValueEnfiladeBottom(20,'B')
+		c = m.normalizeDisps(m.levelPush(a,b))
+		testCase.assertEqual(m.depth(c),2)
+	def test04UpperBottomNode(testCase):
+		a = m.createOneValueEnfiladeUpperBottom(10,'A')
+		b = m.createOneValueEnfiladeUpperBottom(20,'B')
+		c = m.normalizeDisps(m.levelPush(a,b))
+		testCase.assertEqual(m.depth(c),3)
+
+
+#
 #
 #
 #
