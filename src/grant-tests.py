@@ -104,15 +104,102 @@ class GrantTestsCase(u.TestCase):
 
 
 
-class Enwidify1(GrantTestsCase):
-	def test00Single(testCase):
-		testCase.dprintTestHeader('test00Single')
+class KeyIndexTests(GrantTestsCase):
+	# Keys/indexes do not have to be comutative
+	# distributive makes no sense here
+	def associativity(testCase,a,b,c):
+		r1 = m.keyAdd(m.keyAdd(a,b),c)
+		r2 = m.keyAdd(a,m.keyAdd(b,c))
+		testCase.assertTrue(m.keyEquals(r1,r2))
+	def invertibility(testCase, a,b ):
+		r1 = m.keyAdd(a,b)
+		r2 = m.keySubtract(r1,b)
+		testCase.assertTrue(m.keyEquals(a,r2))
+	def identity(testCase,a):
+		r1 = m.keyAdd(a,m.keyZero())
+		testCase.assertTrue(m.keyEquals(r1,a))
+		r2 = m.keySubtract(a,m.keyZero())
+		testCase.assertTrue(m.keyEquals(r2,a))
+	def comparators(testCase,a,b):
+		# If we use something other than integers, the initial
+		# assert will have to be changed
+		assert(a < b)
+		#
+		r1 = m.keyLessThan(a,a)
+		testCase.assertFalse(r1)
+		r2 = m.keyLessThanOrEqual(a,a)
+		testCase.assertTrue(r2)
+		r3 = m.keyEquals(a,a)
+		testCase.assertTrue(r3)
+		#
+		r4 = m.keyEquals(a,b)
+		testCase.assertFalse(r4)
+		r5 = m.keyEquals(b,a)
+		testCase.assertFalse(r5)
+		r6 = m.keyLessThan(a,b)
+		testCase.assertTrue(r6)
+		r7 = m.keyLessThan(b,a)
+		testCase.assertFalse(r7)
+		r8 = m.keyLessThanOrEqual(a,b)
+		testCase.assertTrue(r8)
+		r9 = m.keyLessThanOrEqual(b,a)
+		testCase.assertFalse(r9)
+		#
+	def test00Properties(testCase):
+		testCase.dprintTestHeader("test00Properties")
+		# a must be strictly less than b
+		# FIXME need more test data
+		data = (
+			(10,20,30),
+			(1,2,30),
+			(-10,20,-10),
+			(10,20,30),
+			(10,20,30),
+			(10,20,30),
+			(10,20,30),
+			(10,20,30),
+			(10,20,30),
+			(10,20,30),
+			)
+		for each in data:
+			a = each[0]
+			b = each[1]
+			c = each[2]
+			testCase.comparators(a,b)
+			testCase.associativity(a,b,c)
+			testCase.invertibility(a,b)
+			testCase.identity(a)
+
+class EnwidifyTests(GrantTestsCase):
+	def assertBounds1(testCase,ds,expected):
 		bs = m.NodesBoundsSum()
-		ds = [1, 2, 3, 4]
 		for each in ds:
 			bs.addDsp(each)
-			bs.addDsp(each + 1)
-		testCase.assertEqual(bs.width(), 4)
+			bs.addDsp(m.keyAdd(each,1))
+		testCase.assertEqual(bs.width(), expected)
+	def assertBoundsWids(testCase,ds,expected):
+		bs = m.NodesBoundsSum()
+		for each in ds:
+			bs.addDsp(each[0])
+			bs.addDsp(m.keyAdd(each[0],each[1]))
+		testCase.assertEqual(bs.width(), expected)
+	#
+	def test00Single(testCase):
+		testCase.dprintTestHeader('test00Single')
+		ds = [1, 2, 3, 4]
+		testCase.assertBounds1(ds, 4)
+	def test01Single(testCase):
+		testCase.dprintTestHeader('test01Single')
+		ds = [1, 4]
+		testCase.assertBounds1(ds, 4)
+	def test05Wids(testCase):
+		testCase.dprintTestHeader('test05Wids')
+		ds = [[1,1], [2,1], [3,1], [4,10]]
+		testCase.assertBoundsWids(ds, 13)
+	def test05Wids(testCase):
+		testCase.dprintTestHeader('test06Wids')
+		ds = [[1,1], [2,1], [3,11], [4,1]]
+		testCase.assertBoundsWids(ds, 13)
 
 
 
