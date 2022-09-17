@@ -171,18 +171,20 @@ class KeyIndexTests(GrantTestsCase):
 			testCase.identity(a)
 
 class EnwidifyTests(GrantTestsCase):
-	def assertBounds1(testCase,ds,expected):
-		bs = m.NodesBoundsSum()
-		for each in ds:
-			bs.addDsp(each)
-			bs.addDsp(m.keyAdd(each,1))
-		testCase.assertEqual(bs.width(), expected)
-	def assertBoundsWids(testCase,ds,expected):
-		bs = m.NodesBoundsSum()
-		for each in ds:
-			bs.addDsp(each[0])
-			bs.addDsp(m.keyAdd(each[0],each[1]))
-		testCase.assertEqual(bs.width(), expected)
+	def assertBounds1(testCase,disps,expected):
+		bs = m.KeyBoundsSum()
+		for eachDisp in disps:
+			bs.addDsp(eachDisp)
+			bs.addDsp(m.keyAdd(eachDisp,1))
+		testCase.assertTrue(m.keyEquals(bs.width(), expected))
+	def assertBoundsWids(testCase,dispWidPairs,expected):
+		bs = m.KeyBoundsSum()
+		for eachDispWid in dispWidPairs:
+			dsp = eachDispWid[0]
+			wid = eachDispWid[1]
+			bs.addDsp(dsp)
+			bs.addDsp(m.keyAdd(dsp,wid))
+		testCase.assertTrue(m.keyEquals(bs.width(), expected))
 	#
 	def test00Single(testCase):
 		testCase.dprintTestHeader('test00Single')
@@ -196,7 +198,7 @@ class EnwidifyTests(GrantTestsCase):
 		testCase.dprintTestHeader('test05Wids')
 		ds = [[1,1], [2,1], [3,1], [4,10]]
 		testCase.assertBoundsWids(ds, 13)
-	def test05Wids(testCase):
+	def test06Wids(testCase):
 		testCase.dprintTestHeader('test06Wids')
 		ds = [[1,1], [2,1], [3,11], [4,1]]
 		testCase.assertBoundsWids(ds, 13)
