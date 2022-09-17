@@ -18,8 +18,13 @@ The tests are in `grant-test.py` and currently do not test cuts, recombines or r
 They may be in a failing or erroring state.
 
 #### Notes
-* 2022-09-14 Tests have been updated. I'm becoming increasingly certain that levelPush need to have a normalization step.
-* 2022-09-04 Finally have retrieve and append working acceptably well. Need to fix tests next.
+* 2022-09-16 Tests have been updated.
+Question of how to count depth (should bottom nodes be 0 or 1?) has been resolved in favour of 1, so an empty enfilade can be 0.
+Still unsure of how to handle upper nodes with no children.
+* 2022-09-14 Tests have been updated.
+I'm becoming increasingly certain that levelPush need to have a normalization step.
+* 2022-09-04 Finally have retrieve and append working acceptably well.
+Need to fix tests next.
 * 2022-09-03 I understand now! 
 It appears to be intended that the disps of the children of a node should start from keyZero, so the search in the parent node works correctly. 
 This normalization can be done by finding the smallest key, subtracting it from each of the child keys, and adding it to the node disp. 
