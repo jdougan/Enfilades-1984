@@ -101,7 +101,38 @@ class GrantTestsCase(u.TestCase):
 			arr.append(i)
 			arr.append(each)
 		return arr
-
+	#
+	def linearAppendToTail(testCase,startIndex):
+		def charForIndex(i):
+			return chr(65 + i - startIndex)
+		#dprint()
+		top = None
+		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
+		top = m.append(top, startIndex , 0, charForIndex(startIndex))
+		last = startIndex + 0
+		for i in range(startIndex+1,startIndex+26):
+			#dprint()
+			#dprint("APPEND5", last, 1, charForIndex(i))
+			top = m.append(top, last , 1, charForIndex(i))
+			last = last + 1
+			# dprint()
+			# dumpPretty(top)
+			# dprint()
+			# dprint("    ",testCase.retrieveCheck1(top,0,27))
+		return top
+	#
+	def linearAppendToFirst(testCase):
+		things = []
+		indexes = []
+		i = 0
+		for each in range(65,65+26):
+			things.append(chr(each))
+			indexes.append(i)
+			i = i + 1
+		top = None
+		for each in indexes:
+			top = m.append(top, 1, each, things[each])
+		return top
 
 
 class KeyIndexTests(GrantTestsCase):
@@ -311,20 +342,25 @@ def createTestEnfilade02():
 class DepthTests(GrantTestsCase):
 	# I have no idea how this counts in xu88
 	def test00EmptyTree(testCase):
+		testCase.dprintTestHeader("test00EmptyTree")
 		b = None
 		testCase.assertEqual(m.depth(b),0)
 	def test01BottomNode(testCase):
+		testCase.dprintTestHeader("test01BottomNode")
 		b = m.createOneValueEnfiladeBottom(10,'A')
 		testCase.assertEqual(m.depth(b),1)
 	def test02UpperBottomNode(testCase):
+		testCase.dprintTestHeader("test02UpperBottomNode")
 		b = m.createOneValueEnfiladeUpperBottom(10,'A')
 		testCase.assertEqual(m.depth(b),2)
 	def test03UpperBottomNode(testCase):
+		testCase.dprintTestHeader("test03UpperBottomNode")
 		a = m.createOneValueEnfiladeBottom(10,'A')
 		b = m.createOneValueEnfiladeBottom(20,'B')
 		c = m.normalizeDisps(m.levelPush(a,b))
 		testCase.assertEqual(m.depth(c),2)
 	def test04UpperBottomNode(testCase):
+		testCase.dprintTestHeader("test04UpperBottomNode")
 		a = m.createOneValueEnfiladeUpperBottom(10,'A')
 		b = m.createOneValueEnfiladeUpperBottom(20,'B')
 		c = m.normalizeDisps(m.levelPush(a,b))
@@ -447,16 +483,7 @@ class AppendsBase(GrantTestsCase):
 class ZzAppend1(AppendsBase):
 	def test00LinearAppendToFirst(testCase):
 		testCase.dprintTestHeader('test00LinearAppendToFirst')
-		things = []
-		indexes = []
-		i = 0
-		for each in range(65,65+26):
-			things.append(chr(each))
-			indexes.append(i)
-			i = i + 1
-		top = None
-		for each in indexes:
-			top = m.append(top, 1, each, things[each])
+		top = testCase.linearAppendToFirst()
 		dumpPretty(top)
 		data = testCase.retrieveCheck1(top,0,27)
 		should = [0, [], 1, ['A'], 2, ['B'], 3, ['C'], 4, ['D'], 5, ['E'], 6, ['F'], 7, ['G'], 8, ['H'], 9, ['I'], 10, ['J'], 11, ['K'], 12, ['L'], 13, ['M'], 14, ['N'], 15, ['O'], 16, ['P'], 17, ['Q'], 18, ['R'], 19, ['S'], 20, ['T'], 21, ['U'], 22, ['V'], 23, ['W'], 24, ['X'], 25, ['Y'], 26, ['Z'], 27, []]
@@ -473,24 +500,6 @@ class ZzAppend2(AppendsBase):
 		dprint("    ", data)
 		should = [0, [], 1, [], 2, [], 3, [], 4, [], 5, ['A'], 6, ['B'], 7, ['C'], 8, ['D'], 9, ['E'], 10, ['F'], 11, ['G'], 12, ['H'], 13, ['I'], 14, ['J'], 15, ['K'], 16, ['L'], 17, ['M'], 18, ['N'], 19, ['O'], 20, ['P'], 21, ['Q'], 22, ['R'], 23, ['S'], 24, ['T'], 25, ['U'], 26, ['V'], 27, ['W'], 28, ['X'], 29, ['Y'], 30, ['Z'], 31, [], 32, []]
 		testCase.assertEqual(data, should)
-	def linearAppendToTail(testCase,startIndex):
-		def charForIndex(i):
-			return chr(65 + i - startIndex)
-		#dprint()
-		top = None
-		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
-		top = m.append(top, startIndex , 0, charForIndex(startIndex))
-		last = startIndex + 0
-		for i in range(startIndex+1,startIndex+26):
-			#dprint()
-			#dprint("APPEND5", last, 1, charForIndex(i))
-			top = m.append(top, last , 1, charForIndex(i))
-			last = last + 1
-			# dprint()
-			# dumpPretty(top)
-			# dprint()
-			# dprint("    ",testCase.retrieveCheck1(top,0,27))
-		return top
 
 class Append3(AppendsBase):
 	def constructBase(testCase):
@@ -511,6 +520,7 @@ class Append3(AppendsBase):
 			# should never print
 			dprint("* this should not be reached ", b2)
 			dump(b2)
+			assert(False)
 
 
 
