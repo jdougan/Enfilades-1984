@@ -129,6 +129,27 @@ class GrantTestsCase(u.TestCase):
 		for each in indexes:
 			top = m.append(top, 1, each, things[each])
 		return top
+	#
+	def linearAppendToTailDouble(testCase,startIndex):
+		def charForIndex(i):
+			return (chr(65 + i - startIndex))
+		#dprint()
+		top = None
+		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
+		top = m.append(top, startIndex , 0, charForIndex(startIndex))
+		last = startIndex + 0
+		for i in range(startIndex+1,startIndex+26):
+			#dprint()
+			#dprint("APPEND5", last, 1, charForIndex(i))
+			top = m.append(top, last , 1, charForIndex(i))
+			top = m.append(top, last , 1, charForIndex(i))
+			last = last + 1
+			# dprint()
+			# dumpPretty(top)
+			# dprint()
+			# dprint("    ",testCase.retrieveCheck1(top,0,27))
+		return top
+
 
 #comment out tests by making them inherit frm object
 class AppendsBase(object):
@@ -370,7 +391,7 @@ class DepthTests(object):
 		c = m.normalizeDisps(m.levelPush(a,b))
 		testCase.assertEqual(m.depth(c),3)
 
-class TraversalTests(GrantTestsCase):
+class TraversalTests(object):
 	def test00travtail(testCase):
 		testCase.dprintTestHeader("test00travtail")
 		out = list()
@@ -425,10 +446,57 @@ class TraversalTests(GrantTestsCase):
 
 
 
+class RetrieveAll2Tests(GrantTestsCase):
+	def linearAppendToFirstDouble(testCase):
+		things = []
+		indexes = []
+		i = 0
+		for each in range(65,65+26):
+			things.append(10*chr(each))
+			indexes.append(i)
+			i = i + 1
+		top = None
+		for each in indexes:
+			top = m.append(top, 1, each, things[each])
+			top = m.append(top, 1, each, things[each])
+		return top
+	#
+	#
+	def linearAppendToTailDouble(testCase,startIndex):
+		def charForIndex(i):
+			return 10*(chr(65 + i - startIndex))
+		dprint()
+		top = None
+		dprint("* LATTD-INIT", startIndex, 0, charForIndex(startIndex))
+		top = m.append(top, startIndex , 0, charForIndex(startIndex))
+		last = startIndex + 0
+		dumpPretty(top)
+		dprint()
+		for i in range(startIndex+1,startIndex+26):
+			dprint()
+			dprint(f"* append(top, {last}, 1, {charForIndex(i)})")
+			top = m.append(top, last , 1, charForIndex(i))
+			#top = m.append(top, last , 1, charForIndex(i))
+			last = last + 1
+			dumpPretty(top)
+			#dprint()
+			#dprint("    ",testCase.retrieveCheck1(top,0,27))
+		return top
+	#
+	def test00tc(testCase):
+		testCase.dprintTestHeader("test00tc")
+		top = testCase.linearAppendToFirstDouble()
+		dumpPretty(top)
+		out = m.retrieveAllIntoList2(top, 10)
+		print(out)
 
-
-
-
+	@u.skip("FIXME failing test, need to do something with append")
+	def test01tc(testCase):
+		testCase.dprintTestHeader("test01tc")
+		top = testCase.linearAppendToTailDouble(1)
+		dumpPretty(top)
+		out = m.retrieveAllIntoList2(top, 10)
+		print(out)
 
 
 if __name__ == '__main__':
