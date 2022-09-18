@@ -96,6 +96,8 @@ class KeyBoundsSum(object):
 	def minandmax(self):
 		return (self.kmin, self.kmax, self.width() )
 
+KeyType = int
+ValueType = str
 
 #
 # Assumes d is a string
@@ -290,6 +292,46 @@ def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
 		#terpri(indent=indent)
 		of(")")
 
+
+def breadthTraverseNodes(node, fn):
+	fn(node)
+	if nodeType(node) == NODE_UPPER	:
+		for eachChild in children(node):
+			breadthTraverseNodes(eachChild, fn)
+
+def depthTraverseNodes(node, fn):
+	if nodeType(node) == NODE_UPPER	:
+		for eachChild in children(node):
+			depthTraverseNodes(eachChild, fn)
+	fn(node)
+
+def validateNode(node,errs=list()):
+	# FIXME: needss generalizing for complex Key types
+	if type(width(node)) is not KeyType:
+		errs.append( ('Wrong Key Type width', node) )
+	if type(disp(node)) is not KeyType:
+		errs.append( ('Wrong Key Type disp', node) )
+	if nodeType(node) == NODE_BOTTOM:
+		if type(data(node)) is not ValueType:
+			errs.append( ('Wrong Value Type data', node) )
+		if naturalWidth(data(node)) != width(node):
+			errs.append( ('Width Mismatch Bottom', node) )
+	else:
+		if len(children(node)) > MAX_CHILD_NODES:
+			errs.append( ('Invalid Children too many', node) )
+		if len(children(node)) < 1:
+			errs.append( ('Invalid Children empty', node) )
+	return errs
+
+def validateNodes(top, errs=list()):
+	validateNode(node, errs)
+	if nodeType(node) == NODE_UPPER:
+		for eachChild in children(node):
+			validateNodes(eachChild, errs)
+	return errs
+
+
+
 #
 # New helper method to make experimenting easier
 #
@@ -456,6 +498,27 @@ def recursiveRetrieveAllFn(node, keyInRootSpace, cumulativeKey, fn):
 			dprint('    * Child startDsp:', eachDspStart, 'wid:', eachWidth, 'localKey:', keyInLocalSpace, 'endDsp:', eachDspEnd)
 			if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
 				recursiveRetrieveAllFn(eachChild, keyInRootSpace, keyAdd(cumulativeKey, eachDspStart), fn)
+
+#
+#
+#
+def traverseValuesIntoList(node, out=list()):
+	# unordered
+	def tupleAppend(data, key, node):
+		out.append(data)
+	traverseValuesFn(node, tupleAppend)
+	return out
+def traverseValuesFn(node, fn3):
+	# unordered
+	def recursiveTraverseValuesFn(node, cumulativeKey, fn3):
+		if ( nodeType(node) == NODE_BOTTOM  ):
+			fn3(data(node), cumulativeKey , node=node)
+		else:
+			for eachChild in children(node) :
+				eachDspStart = disp(eachChild)
+				recursiveTraverseValuesFn(eachChild, keyAdd(cumulativeKey, eachDspStart), fn3)
+	recursiveTraverseValuesFn(node, keyAdd(keyZero(),disp(node)), fn3)
+
 
 #
 # Experiment using nested fns
@@ -764,6 +827,3 @@ def prmitiveRecombineGrant(parentNode, sibling1, sibling2):
 	disown(parentNode, sibling1)
 	disown(parentNode, sibling2)
 	adopt(parentNode, newNode)
-
-
-
