@@ -522,17 +522,22 @@ def traverseValuesFn(node, fn3):
 
 #
 # Experiment using nested fns
+# and more intuitive retrieval
 #
-def retrieveAllIntoList2(rootNode, keyInRootSpace, resultList):
-	def gatherFn(datum, dataNode=None):
-		resultList.append(datum)
+def retrieveAllIntoList2(rootNode, keyInRootSpace, resultList=list()):
+	def gatherFn(*args):
+		resultList.append(args)
 	retrieveAll2(rootNode, keyInRootSpace, gatherFn)
 	return resultList
+
 def retrieveAll2(rootNode, keyInRootSpace, fn):
 	def recursiveRetrieveAll(node, cumulativeKey):
 		dprint('* Node start:' , node, 'keyInRoot:' , keyInRootSpace, 'ckInRoot:', cumulativeKey)
-		if keyEquals( cumulativeKey, keyInRootSpace ):
-			fn(data(node), node)
+		if nodeType(node) == NODE_BOTTOM :
+			# if we get here, what we want in in the data, but
+			# isn't necessarily in the first position.
+			offset = keySubtract(keyInRootSpace, cumulativeKey)
+			fn(data(node)[offset], offset, cumulativeKey, keyInRootSpace)
 		else:
 			# translate  the key into local key space
 			keyInLocalSpace = keySubtract(keyInRootSpace, cumulativeKey)
@@ -544,7 +549,7 @@ def retrieveAll2(rootNode, keyInRootSpace, fn):
 				if keyLessThanOrEqual(eachDspStart, keyInLocalSpace) and keyLessThan(keyInLocalSpace , eachDspEnd) :
 					recursiveRetrieveAll(eachChild, keyAdd(cumulativeKey, eachDspStart))
 	#
-	recursiveRetrieveAll(node, keyInRootSpace, keyAdd(keyZero(),disp(node)), fn)
+	recursiveRetrieveAll(rootNode, keyAdd(keyZero(),disp(rootNode)))
 
 ##################################################
 # APPENDS
@@ -601,6 +606,10 @@ def append(topNode, topWhereKey, beyond, newDomainValue):
 	# FIXME: I'm not happy with the scattershot use of normalizeDisps,
 	# need to look at more targeted use.
 	# There are a lot of debug prints here, reorg them.
+	# FIXME breaks sometimes on overlapping data with naturalWid > 1
+	# This appears to be because it is finding a subnode  where the target key
+	# is not the first element of the hit, so the test fails. Not sure
+	# of the correct solutions 
 	if topNode is None:
 		return createOneValueEnfilade(keyAdd(topWhereKey, beyond), newDomainValue)
 	# may return a new topnode
@@ -627,7 +636,7 @@ def recursiveAppend(parentNode, whereKey, beyond, newDomainThing):
 			dprint("* EndRA1", myArgs, newNode)
 			return newNode
 		else:
-			raise KeyError("At Bottom node, key not matching: " + str(parentNode))
+			raise KeyError(f"Bottom node {parentNode}, key {whereKey} not matching {keyZero()}." )
 	else:
 		potentialNewNode = None
 		dprint("    * search", children(parentNode))
@@ -669,6 +678,10 @@ def append1(topNode, topWhereKey, beyond, newDomainThing):
 	# FIXME: I'm not happy with the scattershot use of normalizeDisps,
 	# need to look at more targeted use.
 	# There are a lot of debug prints here, reorg them.
+	# FIXME breaks sometimes on overlapping data with naturalWid > 1
+	# This appears to be because it is finding a subnode  where the target key
+	# is not the first element of the hit, so the test fails. Not sure
+	# of the correct solutions 
 	def recursiveAppend(parentNode, whereKey):
 		if DEBUG is not None:
 			myArgs = [parentNode, whereKey]
