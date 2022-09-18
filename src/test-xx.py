@@ -97,7 +97,38 @@ class GrantTestsCase(u.TestCase):
 			arr.append(i)
 			arr.append(each)
 		return arr
-
+	#
+	def linearAppendToTail(testCase,startIndex):
+		def charForIndex(i):
+			return chr(65 + i - startIndex)
+		#dprint()
+		top = None
+		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
+		top = m.append(top, startIndex , 0, charForIndex(startIndex))
+		last = startIndex + 0
+		for i in range(startIndex+1,startIndex+26):
+			#dprint()
+			#dprint("APPEND5", last, 1, charForIndex(i))
+			top = m.append(top, last , 1, charForIndex(i))
+			last = last + 1
+			# dprint()
+			# dumpPretty(top)
+			# dprint()
+			# dprint("    ",testCase.retrieveCheck1(top,0,27))
+		return top
+	#
+	def linearAppendToFirst(testCase):
+		things = []
+		indexes = []
+		i = 0
+		for each in range(65,65+26):
+			things.append(chr(each))
+			indexes.append(i)
+			i = i + 1
+		top = None
+		for each in indexes:
+			top = m.append(top, 1, each, things[each])
+		return top
 
 #comment out tests by making them inherit frm object
 class AppendsBase(object):
@@ -338,6 +369,64 @@ class DepthTests(object):
 		b = m.createOneValueEnfiladeUpperBottom(20,'B')
 		c = m.normalizeDisps(m.levelPush(a,b))
 		testCase.assertEqual(m.depth(c),3)
+
+class TraversalTests(GrantTestsCase):
+	def test00travtail(testCase):
+		testCase.dprintTestHeader("test00travtail")
+		out = list()
+		top = testCase.linearAppendToTail(1)
+		dumpPretty(top)
+		def addTuple(node):
+			out.append(node)
+		m.breadthTraverseNodes(top, addTuple)
+		testCase.assertIs(top, out[0])
+		print(len(out))
+		print(out)
+		out=list()
+		m.depthTraverseNodes(top, addTuple)
+		testCase.assertIs(top, out[-1])
+		print(len(out))
+		print(out)
+
+	def test05travhead(testCase):
+		testCase.dprintTestHeader("test05travhead")
+		out = set()
+		top = testCase.linearAppendToFirst()
+		def addTuple(*args):
+			out.add(args)
+		m.breadthTraverseNodes(top, addTuple)
+		dumpPretty(top)
+		print(len(out))
+		print(out)
+		out=set()
+		m.depthTraverseNodes(top, addTuple)
+		print(len(out))
+		print(out)
+
+	def test10travtailvalues(testCase):
+		testCase.dprintTestHeader("test10travtailvalues")
+		out = list()
+		top = testCase.linearAppendToTail(1)
+		m.traverseValuesIntoList(top, out)
+		dumpPretty(top)
+		print(len(out))
+		print(out)
+
+	def test11travtailvalues(testCase):
+		testCase.dprintTestHeader("test11travtailvalues")
+		out = list()
+		top = testCase.linearAppendToTail(1)
+		def thingy(data, key, node):
+			print(data,key)
+		m.traverseValuesFn(top, thingy)
+		dumpPretty(top)
+		print(len(out))
+		print(out)
+
+
+
+
+
 
 
 
