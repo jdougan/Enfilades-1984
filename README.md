@@ -18,6 +18,12 @@ The tests are in `grant-test.py` and currently do not test cuts, recombines or r
 They may be in a failing or erroring state.
 
 #### Notes
+* 2022-09-17 More Tests.
+At this point I can safely say that any data entries that put the multiple bit of data at the same key, especially if it is *naturalWidth*(data) > 1, can cause an error while appending.
+This is because append first finds a bottom node that contains *whereKey* using the usual search mechanism and there is a chance that, depending on ordering details, it will first find a data item where the non-first element is at the key.
+This, of course, causes the key check to fail, giving the key error.
+I am uncertain if I'm  going to fix this here, or build a another enfilade that isn't trying to echo the semantics in the pseudo-code version.
+There is also a similar issue with retrieves.
 * 2022-09-16 Tests have been updated.
 Question of how to count depth (should bottom nodes be 0 or 1?) has been resolved in favour of 1, so an empty enfilade can be 0.
 Still unsure of how to handle upper nodes with no children.
