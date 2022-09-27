@@ -126,26 +126,36 @@ One of the reasons they used the names wids and dsps (besides for abbreviation) 
 They thought introducing new terminology would be clearer as it comes with no expectations.
 
 ## Model-T
-The claim made by Ted Nelson is that the first enfilade, the Model-T (for Text) was developed around 1971-72 as part of the *Juggler of Text* (JoT) development.
-They were kept under trade secret along with other enfilade forms and the general theory until the open source (X11 license) *Udanax* release in 1999.
-The *Udanax Green* (aka. *Xanadu 88.1*) code is specifically dependent on enfilades, the later *Udanax Gold*  (aka. *Xanadu 92.1*) is more dependent on an evolution of them called the *Ent*.
+*"If I have seen farther than others, it is because I was standing on the shoulders of giants."* -- Isaac Newton  
+*"In computer science, we stand on each other's feet."* -- Brian K. Reid
 
-It has been rediscovered independently several times, notably by Rodney M. Bates (who calls them K-Trees or Sequence Trees) and were first published as Modula-3 code in Dr. Dobbs in 1994.
+Ted Nelson claims that the first enfilade, the *Model-T* (for Text) was developed around 1971-72 as part of the *Juggler of Text* (JoT) development.
+The indexes are integers, the values are text ranges in buffers or on disk storage.
+The upward summarizing property is text run length, and the downward imposition property is the sequencing.
+They were kept under trade secret along with other enfilade forms and the general theory until the open source (MIT X11 license) *Udanax* release in 1999.
+
+It has been rediscovered independently several times, notably by Rodney M. Bates (who calls them *K-Trees* or *Sequence Trees*) and were first published as Modula-3 code in Dr. Dobbs in 1994.
 In 2002 he published a paper outlining them and doing a performance analysis.
 In 2022 he republished to GitHub in both Modula-3 and Ada.
 
-The Ropes data structure, which is also very similar to the Model-T and K-Trees, was invented a bit later than K-Trees and published in 1995.
+The *Ropes* data structure, which is also very similar to the Model-T and K-Trees, was invented a bit later than K-Trees and published in 1995.
+
+The *monoid-cached tree* is a rediscovery of the principles of upward summarization  in 2006 as part of Hinze and Paterson's Finger Tree paper.
+Note that the term does not appear in the paper, it appears to be a later construction of unknown origin, along with the term *monoid-cached rope*.
 
 ### Sources
 * [Udanax web site](http://udanax.xanadu.com/)
 * [*Xanadu® Technologies-- An Introduction*, August 23, 1999](https://xanadu.com/tech/)
 	* Section starting with "**A BRIEF HISTORY OF ENFILADE WORK AT PROJECT XANADU**"
-* [Dr.Dobbs article, September 1994](https://xanadu.com.au/mail/udanax/msg00056.html) not freely available.
+* [Wikipedia on Enfilades](https://en.wikipedia.org/wiki/Enfilade_(Xanadu))
+* [Dr.Dobbs article in K-Trees, September 1994](https://xanadu.com.au/mail/udanax/msg00056.html) not freely available.
 * [*Sequence trees: Logarithmic slicing and concatenation of sequences*, Journal of Combinatorial Mathematics and Combinatorial Computing, January 2002](https://www.researchgate.net/publication/266056961_Sequence_trees_Logarithmic_slicing_and_concatenation_of_sequences)
 * [Another reference to K-Trees from the old Sunless-Sea wiki , August 2005](https://cxw42.github.io/htdocs/Xanadu-archaeology/articles/text/KTrees.html)
 * [K-Trees reference implementations repository, August 2022 at GitHub (MIT license)](https://github.com/RodneyBates/ktrees)
 * Boehm, Hans-J; Atkinson, Russ; Plass, Michael (December 1995) [*Ropes: an Alternative to Strings* at Citeseer](https://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&rep=rep1&type=pdf) (PDF)
 * [Wikipedia on Ropes](https://en.wikipedia.org/wiki/Rope_(data_structure))
+* Hinze and Paterson, [*Finger trees: A simple general-purpose data structure* at Researchgate](https://www.researchgate.net/publication/220676477_Finger_trees_A_simple_general-purpose_data_structure)
+* [Wikipedia on Finger Trees](https://en.wikipedia.org/wiki/Finger_tree)
 
 ## Indirect 2D
 The grant application mentions that multi-dimensional data can be stored indirectly and implicitly in the key structure of the enfilade. However there are only minimal hints on how to do this.
