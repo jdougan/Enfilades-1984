@@ -45,13 +45,13 @@ def dump(enfilade, should=None,label=''):
 		m.dump(enfilade, of=mdprint)
 		print(' '.join(dumpdata))
 
-def dumpPretty(enfilade, should=None,label=''):
+def dumpPretty(enfilade, should=None,label='',childSort=False):
 	if should is None:
 		s = SHOULD_DUMP
 	else:
 		s = should
 	if s:
-		m.dumpPretty(enfilade)
+		m.dumpPretty(enfilade, childSort=childSort)
 
 def dumpmd(enfilade, should=None,label=''):
 	if should is None:
@@ -121,6 +121,25 @@ class GrantTestsCase(u.TestCase):
 			# dprint("    ",testCase.retrieveCheck1(top,0,27))
 		return top
 	#
+	def linearAppendToTail16(testCase,startIndex):
+		def charForIndex(i):
+			return chr(65 + i - startIndex)
+		#dprint()
+		top = None
+		#dprint("APPEND5-INIT", startIndex, 0, charForIndex(startIndex))
+		top = m.append(top, startIndex , 0, charForIndex(startIndex))
+		last = startIndex + 0
+		for i in range(startIndex+1,startIndex+16):
+			#dprint()
+			#dprint("APPEND5", last, 1, charForIndex(i))
+			top = m.append(top, last , 1, charForIndex(i))
+			last = last + 1
+			# dprint()
+			# dumpPretty(top)
+			# dprint()
+			# dprint("    ",testCase.retrieveCheck1(top,0,27))
+		return top
+	#
 	def linearAppendToFirst(testCase):
 		things = []
 		indexes = []
@@ -136,7 +155,7 @@ class GrantTestsCase(u.TestCase):
 
 
 class KeyIndexTests(GrantTestsCase):
-	# Keys/indexes do not have to be comutative
+	# Keys/indexes do not have to be commutative
 	# distributive makes no sense here
 	def associativity(testCase,a,b,c):
 		r1 = m.keyAdd(m.keyAdd(a,b),c)
@@ -521,6 +540,28 @@ class Append3(AppendsBase):
 			dprint("* this should not be reached ", b2)
 			dump(b2)
 			assert(False)
+
+
+class Cut1(GrantTestsCase):
+	def testSimpleCut(testCase):
+		testCase.dprintTestHeader('testSimpleCut')
+		m.iprintResetLevel(0)
+		a = testCase.linearAppendToTail(0)
+		dprint()
+		dumpPretty(a, childSort=True)
+		cuts = m.makeCutSet(2, 6)
+		b = m.cut(cuts,a)
+		dumpPretty(b)
+	def testSimpleSplit(testCase):
+		testCase.dprintTestHeader('testSimpleSplit')
+		m.iprintResetLevel(0)
+		a = testCase.linearAppendToTail(0)
+		dumpPretty(a, childSort=True)
+		dprint()
+		b = m.split(2,a)
+		dprint()
+		dumpPretty(m.leftChild(b), childSort=True)
+		dumpPretty(m.rightChild(b), childSort=True)
 
 
 

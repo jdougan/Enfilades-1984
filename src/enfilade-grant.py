@@ -19,6 +19,8 @@
 #
 # This file uses tabs to indent
 
+import functools
+
 # Exception to be raised in a function to
 # mark the function as unimplemented.
 # Can be removed once development is over.
@@ -36,6 +38,27 @@ def dprint_normal(*data, level=DEFAULT_DPRINT_LEVEL, of=print):
 def dprint_off(*data, **datak):
 	pass
 dprint = dprint_normal
+
+def countSlot(val):
+	if val is None:
+		return val
+	else:
+		return len(val)
+
+IPRINT_INDENT_LEVEL=0
+IPRINT_INDENT_SEGMENT='    '
+
+def iprintResetLevel(level=0):
+	global IPRINT_INDENT_LEVEL
+	IPRINT_INDENT_LEVEL=level
+def iprint(*data, level=0, of=print):
+	global IPRINT_INDENT_LEVEL
+	global IPRINT_INDENT_SEGMENT
+	for i in range(IPRINT_INDENT_LEVEL):
+		of(IPRINT_INDENT_SEGMENT, end='')
+	of(*data)
+	IPRINT_INDENT_LEVEL = IPRINT_INDENT_LEVEL + level
+
 
 #######################################################
 # keyspace/indexspace operations
@@ -58,6 +81,15 @@ def keyLessThan(a,b):
 	return a < b
 def keyLessThanOrEqual(a,b):
 	return a <= b
+
+#
+# FIXME added to make python sorted() work
+# probably needs to be rethought as they changed
+# how sorts are specified in python3
+#
+def keyCmp(a,b):
+    return bool(a > b) - bool(a < b)
+
 # not defined in the grant app, but it makes life easier for
 # normalization
 # This may need to be customized for each key type.
@@ -130,14 +162,11 @@ class Node:
 		node.myDisp = None
 		node.myChildren = None
 	def __str__(node):
-		nc = node.myChildren
-		if nc is not None:
-			np = len(nc)
-		else:
-			np = None
 		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, node.myChildren]) +  ')'
 	def __repr__(node):
 		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, node.myChildren]) +  ')'
+	def shortDesc(node):
+		return 'Node(' + str([node.myNodeType, node.myDisp, node.myWidth, node.myData, countSlot(node.myChildren)]) +  ')'
 
 def createNewBottomNode():
 	n = Node()
@@ -200,12 +229,14 @@ def adopt(parentNode, childNode):
 		raise InvalidChildren("Bottom Node in adopt()")
 	if parentNode.myChildren is None :
 		parentNode.myChildren = list()
+	assert(numberOfChildren(parentNode) < MAX_CHILD_NODES )
 	parentNode.myChildren.append(childNode)
 def disown(parentNode, childNode):
 	if parentNode.myNodeType == NODE_BOTTOM:
 		raise InvalidChildren("Bottom Node in disown()")
 	if parentNode.myChildren is None :
 		raise InvalidChildren("Uppper Node in disown()")
+	assert(childNode in parentNode.myChildren)
 	parentNode.myChildren.remove(childNode)
 #
 # Exception raised by theOneChildOf to indicate when a collection is
@@ -280,15 +311,19 @@ def dumpPretty_eoln(of=print, indent=0, lineend='\n',indentChar="\t"):
 		of(indentChar , end="", sep='')
 def dumpPretty_print(*data, of=print):
 	of(*data, end='', sep='')
-def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0):
+def dumpPretty(node, of=dumpPretty_print, terpri=dumpPretty_eoln, indent=0, childSort=False):
 	if nodeType(node) == NODE_BOTTOM :
 		terpri(indent=indent)
 		of("(BOTTOM", ' ', disp(node), ' ', width(node), ' ', repr(data(node)), ")")
 	else:
 		terpri(indent=indent)
 		of("(UPPER", ' ', disp(node), ' ', width(node) )
-		for each in children(node) :
-			dumpPretty(each, of=of, indent=indent+1, terpri=terpri)
+		if childSort :
+			for each in sorted(children(node), key=disp) :
+				dumpPretty(each, of=of, indent=indent+1, terpri=terpri)
+		else:
+			for each in children(node):
+				dumpPretty(each, of=of, indent=indent+1, terpri=terpri)			
 		#terpri(indent=indent)
 		of(")")
 
@@ -748,7 +783,8 @@ def append1(topNode, topWhereKey, beyond, newDomainThing):
 # Tree cutting
 # Helper functions are my guess at intent.
 #
-# is child set a set? I think it is just a pair
+# is child set a set? I think it is just a pair. Could be replaced in
+# python with a tuple multi-value return.
 #
 def makeChildSet(left, right):
 	return [left, right]
@@ -758,21 +794,24 @@ def rightChild(childSet):
 	return childSet[-1]
 #
 # is cut set a set? I think it is a sorted collection of root space
-# disps. FIXME: How many cuts in a set? Can't be 0, maybe minimum of one?
-# test.
+# disps. FIXME: Minimum cuts in a set? Can't be 0, maybe minimum of one?
+# TODO test.
+# see https://docs.python.org/3/howto/sorting.html for the sorted use
 #
-def makeCutSet(*cuts, sortFn=keyLessThan):
+def makeCutSet(*cuts, sortFn=keyCmp):
 	# cuts is a yuple of cut keys
-	return sorted(cuts, key=sortFn)
-def makeCutSetAll(*cutsList, sortFn=keyLessThan):
+	return sorted(cuts, key=functools.cmp_to_key(sortFn))
+def makeCutSetAll(cutsList, sortFn=keyCmp):
 	# cutsList is a tuple of lists of cut keys
-	return sorted(cuts, key=sortFn)
+	return sorted(cutsList, key=functools.cmp_to_key(sortFn))
 def firstCut(cutSet):
 	return cutSet[0]
 def lastCut(cutSet):
 	return cutSet[-1]
+def cloneCutSet(cutSet):
+	return cutSet.copy()
 #
-#
+# Hideously broken, AFAICT
 #
 def cutGrant(cutSet, topNode):
 	recursiveCutGrant(cutSet, topNode)
@@ -781,8 +820,10 @@ def cutGrant(cutSet, topNode):
 def recursiveCutGrant(cutSet, parentNode):
 	dontDiveDeeperFlag = True
 	for eachChild in children(parentNode):
+		# tests need checking
 		if keyLessThan(disp(eachChild), firstCut(cutSet)) and keyLessThanOrEqual(lastCut(cutSet), keyAdd(disp(eachChild), width(eachChild))) :
 			dontDiveDeeperFlag = False
+			# WARNING broken magic
 			for eachCut in cutSet:
 				# FIXME: Is this supposed to change the cutSet entry in place?
 				raise NotImplemented
@@ -795,15 +836,28 @@ def chopUpGrant(cutSet, parentNode):
 	for eachCut in cutSet:
 		for eachChild in children(parentNode):
 			if keyLessThan(disp(eachChild), cut) and keyLessThanOrEqual(cut, keyAdd(disp(eachChild), width(eachChild))):
+				# same node overfilling problem here as in split
 				newChildSet = splitGrant(cut, eachChild)
 				disown(parentNode, child)
 				adopt(parentNode, leftChild(newChildSet))
 				adopt(parentNode, rightChild(newChildSet))
 				break
 #
+# split is where most of the magic is supposed to happen in cut.
+#
+# After hacking around it it looks pretty wrong. will the new node
+# width calculations work with data with holes in it? No
+# normalization step, disps will be wrong. With naturalWid == 1 data,
+# we should never be trying to split bottom nodes. If we need to,
+# write a separate case based om the specific needs of the data
+# Besides, the rest of the grant code doesn't handle that case very
+# well. Another issue is overfilling the parent node with children
+# when you generate two new nodes after a split but only remove one.
+#
 def splitGrant(cut, node):
 	leftNode = createNewNode()
 	rightNode = createNewNode()
+	# unclear if these widths ans disps are correct or need re-normalization
 	setDisp(leftNode, disp(node))
 	setWidth(leftNode, keySubtract(cut, disp(node)))
 	setDisp(rightNode, cut)
@@ -820,12 +874,105 @@ def splitGrant(cut, node):
 	#
 	return makeChildSet(leftNode, rightNode)
 
+#
+#
+#
+def cut(cutSet, topNode):
+	iprint()
+	iprint("- cut(" , cutSet , ",  ", topNode.shortDesc(), ')', level=1)
+	recursiveCut(cutSet, topNode)
+	iprint('- return cut', level=-1)
+	return topNode
+#
+def recursiveCut(cutSet, parentNode):
+	iprint("- recursiveCut(", cutSet, '    ' , parentNode.shortDesc(), ')', level=1)
+	dontDiveDeeperFlag = True
+	for eachChild in children(parentNode):
+		if keyLessThan(disp(eachChild), firstCut(cutSet)) and keyLessThanOrEqual(lastCut(cutSet), keyAdd(disp(eachChild), width(eachChild))) :
+			dontDiveDeeperFlag = False
+			cutSetLocal = cloneCutSet(cutSet)
+			for i, eachCutLocal in enumerate(cutSetLocal):
+				cutSetLocal[i] = keySubtract(eachCutLocal, disp(eachChild) )
+			recursiveCut(cutSetLocal, eachChild)
+		pass
+	pass
+	if dontDiveDeeperFlag:
+		chopUp(cutSet, parentNode)
+	iprint('- return recursiveCut', level=-1)
+#
+def chopUp(cutSet, parentNode):
+	iprint("- chopUp(", cutSet, ', ' , parentNode.shortDesc(), ')', level=1)
+	for eachCut in cutSet:
+		for eachChild in children(parentNode):
+			iprint('- eahChild ', eachCut , '  ' , eachChild.shortDesc() )
+			if keyLessThan(disp(eachChild), eachCut) and keyLessThanOrEqual(eachCut, keyAdd(disp(eachChild), width(eachChild))):
+				newChildSet = split(eachCut, parentNode)
+				disown(parentNode, eachChild)
+				adopt(parentNode, leftChild(newChildSet))
+				adopt(parentNode, rightChild(newChildSet))
+				break
+		pass
+	pass 
+	iprint('- return chopUp', level=-1)
+
+#
+def split(cutPoint, node):
+	iprint("- split(", cutPoint, ', ' , node.shortDesc(), ')', level=1)
+	assert(nodeType(node) == NODE_UPPER)
+	leftNode = createNewNode()
+	rightNode = createNewNode()
+	# disp, width calcs are tenuous if we a using non-multivalued storage.
+	# could possibly end up in a place with no data. should be renormalized?
+	setDisp(leftNode, disp(node))
+	setWidth(leftNode, keySubtract(cutPoint, disp(node)))
+	setDisp(rightNode, cutPoint)
+	setWidth(rightNode, keySubtract(keyAdd(width(node), disp(node)), cutPoint) )
+	for eachChild in children(node):
+		iprint("- splitchild: ", eachChild.shortDesc(), disp(eachChild) , cutPoint ,  keyAdd(disp(eachChild), width(eachChild)))
+		if keyLessThanOrEqual(keyAdd(disp(eachChild), width(eachChild)), cutPoint) :
+			adopt(leftNode, eachChild)
+		elif keyLessThanOrEqual(cutPoint, disp(eachChild)) :
+			adopt(rightNode, eachChild)
+		else:
+			newChildSet = split(keySubtract(cutPoint, disp(eachChild)), eachChild)
+			adopt(leftNode, leftChild(newChildSet))
+			adopt(rightNode, rightChild(newChildSet))
+	#
+	# Normalize, so the sub-trees are internally consistent.
+	# this may break the intent
+	normalizeDisps(leftNode)
+	normalizeDisps(rightNode)
+	iprint('- return split', level=-1)
+	return makeChildSet(leftNode, rightNode)
+
+
+
 #######################################################
-# You may not want to recombination is you're tree node sharing.
-#
-#
+# You may not want to use recombination if you're tree
+# node sharing.
 #
 def prmitiveRecombineGrant(parentNode, sibling1, sibling2):
+	newNode = createNewNode()
+	setDisp(newNode, disp(sibling1))
+	for eachChild in children(sibling1):
+		disown(sibling1, eachChild)
+		adopt(newNode, eachChild)
+	dispCorrection = keySubtract(disp(sibling2), disp(siblng1))
+	for eachChild in children(sibling2):
+		disown(sibling2, eachChild)
+		setDisp(eachChild, keyAdd(disp(eachChild), dispCorrection))
+		adopt(newNode, eachChild)
+	setWidth(newNode, calculateWidth(children(newNode)))
+	disown(parentNode, sibling1)
+	disown(parentNode, sibling2)
+	adopt(parentNode, newNode)
+
+#
+#
+# No child overflow checks here either.
+# take trhew childreen of sibling 1 and 2 and mak them children of parentNode
+#
+def prmitiveRecombine(parentNode, sibling1, sibling2):
 	newNode = createNewNode()
 	setDisp(newNode, disp(sibling1))
 	for eachChild in children(sibling1):

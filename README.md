@@ -10,8 +10,8 @@ Note that the pseudo-code samples there don't actually work.
 Chip Morningstar claims they are just mistakes as they were trying to show everything to justify the grant, so my earlier theories about deliberate mistakes to keep trade secrets are apparently wrong.
 I've tried to debug them based on the declared intent, but I may have misunderstood.
 
-The keys are `int` the values are `str`.
-Functions that are suffixed with "Grant" are straight translations of the pseudo-code and are undebugged.
+The keys are `int` the values are `str` of length 1.
+Functions that are suffixed with "Grant" are mostly straight translations of the pseudo-code and are undebugged.
 Some of the support functions (levelPush, levelPop, etc.) seem to work as indicated in the pseudo-code so have no "Grant" suffixed version.
 I have removed uses of a global that holds the top node of the enfilade (Fulcrum in Xanadu parlance), instead the functions take the top node as argument and modification functions return the (possibly new) top node.
 The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
@@ -23,6 +23,8 @@ They may be in a failing or erroring state.
 Many of the tests produce markdown formatted output.
 
 #### Notes
+* 2023-04-29 First pass at untangling cut() and various support functions.
+
 * 2022-09-17 More Tests.
 AFter a bunch of debugging, It seems that data entries that put multiple items of data at the same key, if there is $naturalWidth(data) > 1$ , can cause a `KeyError` while appending.
 This is because append first finds a bottom node that contains `whereKey` using the usual search mechanism and there is a chance that, depending on ordering details, it will first find a data item where the non-first element is at the key.
@@ -68,6 +70,12 @@ Top key value needs adjustment by disp the same way as occurs in the recursive c
 * Node splitting in append was getting disps wrong in the new node.
     * ~~Lots of issues with append~~.
 * Appending data elements with a `naturalWidth()` greater than 1 gives unintuitive results on retrieval. Keeping grant app implied semantics for now.
+* Cut as written in the grant application makes some weird assumptions:
+    * It assumes we never split a full node. However, it can happen and will overflow the children when adding the rightNode, and there is no clear path to handle this case.
+    * It assumes we never try to split a bottom node. However, this can happen in the case where the data has a `naturalWidth()`greater than 1. This is data specific so would require bespoke code anyways, but you'd think there would be some indication. I added an assert() to check the node is an upper node, in case if it should get fed data values with a `naturalWidth() > 1`.
+    * FIXME TODO It is unclear how well this would work with multiple hit retrieval as outlined in the section in the grant app on retrieve. (confirm?)The split procedure can create can create holes in the index space data that were not there before.
+* split() and chopUp() have no hint of any kind of normalization of disps and widths for the split and reassembly. Unclear at the moment if it will matter.  FIXME
+* primitiveRecombine() has a similar issue regarding child node overflow.
 
 ### Sources 
 * Announcement of finding the grant app front matter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
@@ -92,7 +100,7 @@ A cleaned up Markdown version of the complete glossary in [the original scanned 
     * (tree) node
 * fulcrum
 	* top node
-* loaf
+* loaf0
     * child-block
     * children
     * It was split out so I/O packing behavior could be specified, we don't care for this.
@@ -117,9 +125,10 @@ A cleaned up Markdown version of the complete glossary in [the original scanned 
     * Not a set.
     * A pair of nodes, labelled left and right
     * used to carry a cut result for splicing
+    * In Python we could use a destructuring tuple return for this.
 * cutSet
     * Also not a set.
-    * Sorted collection of keys specifying where the enfilade should split nodes, ordered by .<. / keyLessThan().
+    * Sorted ordered collection of keys specifying where the enfilade should split nodes, ordered by .<. / keyLessThan().
     * These get modified in place during the cut, but not resorted.
 
 One of the reasons they used the names wids and dsps (besides for abbreviation) is because they connote a specific set of mathematical properties that the enfilade depends on, and functions and types with these properties may not involve actual widths or displacements (see [*General Enfilade Theory*]()).
