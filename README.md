@@ -1,5 +1,15 @@
 # Enfilades-1984
-Several Python 3 implementations of Enfilades.
+## 2024-10-21 Introduction
+This got stalled a year and a half ago, when I discovered that the pseudo-code for splitting and recombination wasn't much more than a guess.
+I sat on it for a bit to see if I could think of an approach that might work, then other matters ate my time.
+
+Now I'm working on a port of xu88/Green to something more resistant to memory issues than C (D language).
+Roger has told me that the recombine part of Green worked (and it took him awhile to get it right) so when I get to that part we'll see if I can salvage this project.
+In the meantime if someone else wants to try, go ahead.
+Just let me (jdougan@acm.org) know. --John Dougan
+
+## Introduction
+Several Python 3 implementations of Enfilades as described by available materials from the Xanadu Project in 1984.
 Currently there is just one implementation, but the plan is to do more later (Model-T, Indirect Data, etc.)
 As the source and documentation I've generated this from is under MIT license, this is also.
 
@@ -14,7 +24,7 @@ The keys are `int` the values are `str` of length 1.
 Functions that are suffixed with "Grant" are mostly straight translations of the pseudo-code and are undebugged.
 Some of the support functions (levelPush, levelPop, etc.) seem to work as indicated in the pseudo-code so have no "Grant" suffixed version.
 I have removed uses of a global that holds the top node of the enfilade (Fulcrum in Xanadu parlance), instead the functions take the top node as argument and modification functions return the (possibly new) top node.
-The code is intended for pedagogical purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
+The code is intended for pedagogical and archaeological purposes and I make no efficiency or universality guarantees; or for that matter it being at all idiomatic Python.
 What I have also tried to do is convert some of the idiosyncratic Xanadu terminology into modern terminology. See [Terms Explained and Substituted](#terms-explained-and-substituted)
 
 The tests are in `grant-test.py` and currently do not test cuts, recombines or rearranges.
@@ -23,10 +33,11 @@ They may be in a failing or erroring state.
 Many of the tests produce markdown formatted output.
 
 #### Notes
-* 2023-04-29 First pass at untangling cut() and various support functions.
+* 2024-10-21 Picking this back up after a long hiatus. As I remember, I got stalled out on the node splitting and recombine issue. As mentioned above, the pseudo-code for this apparently isn't much more than a guess by the writers, who were in a hurry at the time.
 
+* 2023-04-29 First pass at untangling cut() and various support functions.
 * 2022-09-17 More Tests.
-AFter a bunch of debugging, It seems that data entries that put multiple items of data at the same key, if there is $naturalWidth(data) > 1$ , can cause a `KeyError` while appending.
+After a bunch of debugging, It seems that data entries that put multiple items of data at the same key, if there is $naturalWidth(data) > 1$ , can cause a `KeyError` while appending.
 This is because append first finds a bottom node that contains `whereKey` using the usual search mechanism and there is a chance that, depending on ordering details, it will first find a data item where the non-first element is at the key.
 This, of course, causes the key check to fail, giving the key error.
 I am uncertain if I'm  going to fix this here, or build a another enfilade that isn't trying to echo the semantics in the pseudo-code version.
@@ -62,7 +73,7 @@ Top key value needs adjustment by disp the same way as occurs in the recursive c
 * Unclear what empty and single element enfilades should be like.
     * After experimentation decided that empty is Nil/None and single is a upper and bottom normalized.
     * Single bottom nodes ~~should~~ now work ~~with some small changes~~.
-    * What happens withs an empty Upper Node?
+    * What happens with an empty Upper Node?
         * Empty enfilade? Error? Remove it?
 * There are a couple of possible ways to reconstruct `retrieve()`, not sure what was intended.
 	* the key correction to local from root can be done in the calling proc, or in the called part.
@@ -72,10 +83,10 @@ Top key value needs adjustment by disp the same way as occurs in the recursive c
 * Appending data elements with a `naturalWidth()` greater than 1 gives unintuitive results on retrieval. Keeping grant app implied semantics for now.
 * Cut as written in the grant application makes some weird assumptions:
     * It assumes we never split a full node. However, it can happen and will overflow the children when adding the rightNode, and there is no clear path to handle this case.
-    * It assumes we never try to split a bottom node. However, this can happen in the case where the data has a `naturalWidth()`greater than 1. This is data specific so would require bespoke code anyways, but you'd think there would be some indication. I added an assert() to check the node is an upper node, in case if it should get fed data values with a `naturalWidth() > 1`.
-    * FIXME TODO It is unclear how well this would work with multiple hit retrieval as outlined in the section in the grant app on retrieve. (confirm?)The split procedure can create can create holes in the index space data that were not there before.
+    * It assumes we never try to split a bottom node. However, this can happen in the case where the data has a `naturalWidth()` greater than 1. This is data specific so would require bespoke code anyways, but you'd think there would be some indication. I added an assert() to check the node is an upper node, in case if it should get fed data values with a `naturalWidth() > 1`.
+    * FIXME TODO It is unclear how well this would work with multiple hit retrieval as outlined in the section in the grant app on retrieve. (confirm?) The split procedure can create can create holes in the index space data that were not there before.
 * split() and chopUp() have no hint of any kind of normalization of disps and widths for the split and reassembly. Unclear at the moment if it will matter.  FIXME
-* primitiveRecombine() has a similar issue regarding child node overflow.
+* primitiveRecombine() has a similar issue regarding child node overflow. FIXME
 
 ### Sources 
 * Announcement of finding the grant app front matter with the curse: http://habitatchronicles.com/2006/06/things-you-find-while-cleaning-your-office/
@@ -101,9 +112,11 @@ A cleaned up Markdown version of the complete glossary in [the original scanned 
 * fulcrum
 	* top node
 * loaf0
+    * collection of crums
     * child-block
     * children
     * It was split out so I/O packing behavior could be specified, we don't care for this.
+    * This is most similar to the idea of a node in a B-tree.
 * wid
     * width
 * dsp, disp
@@ -149,8 +162,13 @@ In 2022 he republished to GitHub in both Modula-3 and Ada.
 
 The *Ropes* data structure, which is also very similar to the Model-T and K-Trees, was invented a bit later than K-Trees and published in 1995.
 
-The *monoid-cached tree* is a rediscovery of the principles of upward summarization  in 2006 as part of Hinze and Paterson's Finger Tree paper.
+The *monoid-cached tree* is a rediscovery of the principles of upward summarization in 2006 as part of Hinze and Paterson's Finger Tree paper.
 Note that the term does not appear in the paper, it appears to be a later construction of unknown origin, along with the term *monoid-cached rope*.
+
+I believe the first place I heard *monoid-cached tree* was in a Guy L. Steele Jr. Google lecture "Four Solutions to  a Trivia Problem" recorded on December 1, 2015.
+Earlier in 2010 in another lecture *How to Think about Parallel Programming: Not!* he talked about the upward summarization via monoids.
+
+I've also seen claims that a *segment tree* is the same thing as a *monoid-cached tree*.`
 
 ### Sources
 * [Udanax web site](http://udanax.xanadu.com/)
@@ -165,6 +183,8 @@ Note that the term does not appear in the paper, it appears to be a later constr
 * [Wikipedia on Ropes](https://en.wikipedia.org/wiki/Rope_(data_structure))
 * Hinze and Paterson, [*Finger trees: A simple general-purpose data structure* at Researchgate](https://www.researchgate.net/publication/220676477_Finger_trees_A_simple_general-purpose_data_structure)
 * [Wikipedia on Finger Trees](https://en.wikipedia.org/wiki/Finger_tree)
+* Steele, Guy L. [*Four Solutions to a Trivial Problem*](https://www.youtube.com/watch?v=ftcIcn8AmSY) at 23:46 or so.
+* Steele, Guy L. [*How to Think about Parallel Programming: Not!*](https://www.infoq.com/presentations/Thinking-Parallel-Programming/) [Transcript](https://github.com/matthiasn/talk-transcripts/blob/master/Steele_Guy/ParallelProg.md) of this StrangeLoop 2010 talk.
 
 ## Indirect 2D
 The grant application mentions that multi-dimensional data can be stored indirectly and implicitly in the key structure of the enfilade. However there are only minimal hints on how to do this.
